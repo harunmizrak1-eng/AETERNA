@@ -6,7 +6,6 @@ import { colors, spacing, type, radius, evidenceTierColor, evidenceTierLabel, ca
 
 /**
  * COMPOUND DETAIL — TODO (Claude Code):
- * - "Add to Stack" CTA button (creates StackItem via createStackItem)
  * - Render sources as tappable list (open URL if present)
  * - Reconstitution calculator if vial-based (subq/im route)
  * - "Add personal note" field
@@ -68,6 +67,14 @@ export default function CompoundDetailScreen() {
           <Text key={idx} style={styles.sourceItem}>· {s.label} — {s.detail}</Text>
         ))}
       </View>
+
+      <Pressable
+        style={styles.addToStackBtn}
+        onPress={() => router.push(`/stack/add/${compound.id}`)}
+      >
+        <Ionicons name="add" size={18} color={colors.bg} />
+        <Text style={styles.addToStackBtnText}>Stack'e ekle</Text>
+      </Pressable>
     </ScrollView>
   );
 }
@@ -110,4 +117,15 @@ const styles = StyleSheet.create({
   cautionText: { ...type.caption, color: colors.textPrimary, flex: 1, lineHeight: 18 },
   sourcesBlock: { marginTop: spacing.xl },
   sourceItem: { ...type.caption, color: colors.textTertiary, marginTop: spacing.xs },
+  addToStackBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    backgroundColor: colors.gold,
+    borderRadius: radius.md,
+    paddingVertical: spacing.lg,
+    marginTop: spacing.xxl,
+  },
+  addToStackBtnText: { ...type.bodyMedium, color: colors.bg, fontWeight: '700' },
 });

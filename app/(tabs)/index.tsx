@@ -1,6 +1,7 @@
-import { View, Text, FlatList, StyleSheet } from 'react-native';
-import { useEffect, useState, useCallback } from 'react';
-import { useFocusEffect } from 'expo-router';
+import { View, Text, FlatList, Pressable, StyleSheet } from 'react-native';
+import { useState, useCallback } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { listStackItems } from '../../src/db/stackRepository';
 import { getCompoundById } from '../../src/data/compounds';
 import { StackItem } from '../../src/types/models';
@@ -10,8 +11,6 @@ import { colors, spacing, type, radius } from '../../src/theme/tokens';
  * STACK TAB — TODO (Claude Code):
  * - Replace placeholder rows with real StackItemCard component
  *   (compound name, dose, next dose time, quick-log button)
- * - Add empty state with CTA to add first compound
- * - Add "+" header button → navigate to add-stack-item flow
  * - Swipe-to-log-dose gesture
  * - Group by time-of-day (morning/evening) or by category
  */
@@ -32,8 +31,15 @@ export default function StackScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Stack</Text>
-      <Text style={styles.subtitle}>Aktif protokolün</Text>
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.title}>Stack</Text>
+          <Text style={styles.subtitle}>Aktif protokolün</Text>
+        </View>
+        <Pressable style={styles.addBtn} onPress={() => router.push('/library')}>
+          <Ionicons name="add" size={24} color={colors.bg} />
+        </Pressable>
+      </View>
 
       {!loading && items.length === 0 && (
         <View style={styles.emptyState}>
@@ -64,8 +70,17 @@ export default function StackScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: spacing.xl, paddingTop: spacing.huge },
+  header: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
   title: { ...type.display, color: colors.textPrimary },
   subtitle: { ...type.body, color: colors.textSecondary, marginTop: spacing.xs },
+  addBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.pill,
+    backgroundColor: colors.gold,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   emptyState: { marginTop: spacing.huge, alignItems: 'center', gap: spacing.sm },
   emptyText: { ...type.h3, color: colors.textSecondary },
   emptyHint: { ...type.caption, color: colors.textTertiary, textAlign: 'center' },
