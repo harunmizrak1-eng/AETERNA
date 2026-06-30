@@ -82,6 +82,9 @@ export interface DailyMetric {
   whoopDeepSleepMin?: number;
   energyLevel?: number; // 1-10
   mood?: number; // 1-10
+  caloriesConsumed?: number;
+  caloriesBurned?: number;
+  waterMl?: number;
   notes?: string;
 }
 

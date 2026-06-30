@@ -12,6 +12,9 @@ function rowToMetric(row: any): DailyMetric {
     whoopDeepSleepMin: row.whoop_deep_sleep_min ?? undefined,
     energyLevel: row.energy_level ?? undefined,
     mood: row.mood ?? undefined,
+    caloriesConsumed: row.calories_consumed ?? undefined,
+    caloriesBurned: row.calories_burned ?? undefined,
+    waterMl: row.water_ml ?? undefined,
     notes: row.notes ?? undefined,
   };
 }
@@ -28,8 +31,8 @@ export async function upsertDailyMetric(metric: Omit<DailyMetric, 'id'>): Promis
 
   await db.runAsync(
     `INSERT INTO daily_metrics
-      (id, date, weight_kg, sleep_hours, sleep_quality, whoop_recovery, whoop_deep_sleep_min, energy_level, mood, notes)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (id, date, weight_kg, sleep_hours, sleep_quality, whoop_recovery, whoop_deep_sleep_min, energy_level, mood, calories_consumed, calories_burned, water_ml, notes)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
      ON CONFLICT(date) DO UPDATE SET
        weight_kg = excluded.weight_kg,
        sleep_hours = excluded.sleep_hours,
@@ -38,6 +41,9 @@ export async function upsertDailyMetric(metric: Omit<DailyMetric, 'id'>): Promis
        whoop_deep_sleep_min = excluded.whoop_deep_sleep_min,
        energy_level = excluded.energy_level,
        mood = excluded.mood,
+       calories_consumed = excluded.calories_consumed,
+       calories_burned = excluded.calories_burned,
+       water_ml = excluded.water_ml,
        notes = excluded.notes`,
     [
       id,
@@ -49,6 +55,9 @@ export async function upsertDailyMetric(metric: Omit<DailyMetric, 'id'>): Promis
       metric.whoopDeepSleepMin ?? null,
       metric.energyLevel ?? null,
       metric.mood ?? null,
+      metric.caloriesConsumed ?? null,
+      metric.caloriesBurned ?? null,
+      metric.waterMl ?? null,
       metric.notes ?? null,
     ]
   );

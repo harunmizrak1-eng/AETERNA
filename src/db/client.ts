@@ -55,6 +55,9 @@ async function migrate(db: SQLite.SQLiteDatabase) {
       whoop_deep_sleep_min INTEGER,
       energy_level INTEGER,
       mood INTEGER,
+      calories_consumed REAL,
+      calories_burned REAL,
+      water_ml REAL,
       notes TEXT
     );
 
@@ -81,4 +84,14 @@ async function migrate(db: SQLite.SQLiteDatabase) {
     CREATE INDEX IF NOT EXISTS idx_dose_logs_date ON dose_logs(taken_at);
     CREATE INDEX IF NOT EXISTS idx_blood_markers_panel ON blood_markers(panel_id);
   `);
+
+  // daily_metrics gained calorie/water columns after the initial CREATE TABLE
+  // shipped — ALTER TABLE them in for installs that already have the table.
+  for (const column of ['calories_consumed REAL', 'calories_burned REAL', 'water_ml REAL']) {
+    try {
+      await db.execAsync(`ALTER TABLE daily_metrics ADD COLUMN ${column}`);
+    } catch {
+      // column already exists
+    }
+  }
 }

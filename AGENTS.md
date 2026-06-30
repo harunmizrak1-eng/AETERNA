@@ -35,9 +35,33 @@ Current real scope (in priority order):
 
 Explicitly OUT OF SCOPE until the above is solid and the user asks:
 AI coach / chat, wearable integrations (WHOOP/Oura/Apple Health APIs),
-genetics, photo progress, population benchmarking/heatmaps, community features,
+genetics, photo progress, population benchmarking/heatmaps,
 protocol simulator, biological age engine, voice journal, PDF lab upload + AI
 extraction. These are real Phase 2/3 ideas, not Phase 1.
+
+## Phase 1 — Community
+
+Community (a social feed for ÆTERNA's audience) was originally scoped out and
+explicitly rejected — see the "Product scope" note above. **That decision was
+later and deliberately reversed by the owner**: community is now in Phase 1.
+This is not scope creep to be second-guessed; treat it as settled.
+
+What changed and what didn't:
+
+- The owner has knowingly accepted the legal/regulatory exposure of running a
+  user-generated-content feed (moderation liability, data handling for
+  third-party content) and owns moderation responsibility personally — there
+  is no moderation team or automated moderation pipeline. Don't add one
+  unprompted.
+- This is the first feature that breaks the local-first architecture (see
+  Architecture below). That break is scoped tightly to the community module
+  only — `StackItem`, `DoseLog`, `DailyMetric`, and blood panel data stay
+  on-device. Do not move other domains to the backend "while we're at it."
+- Community ships with baseline safety primitives only: per-post/comment
+  reporting and user-level blocking. There is no admin moderation UI in the
+  app yet — reports are reviewed directly in the Supabase dashboard. If that
+  needs to change (admin queue, auto-hide on report threshold, etc.), that's
+  a separate, explicit ask, not an assumption to build ahead of.
 
 ## Critical constraint: not a medical device
 
@@ -89,8 +113,13 @@ once for being "obviously AI-generated."
 - **Expo Router** (file-based routing) — `app/` directory, route groups under
   `app/(tabs)/`.
 - **expo-sqlite** with manual SQL migrations in `src/db/client.ts` — no ORM.
-  Local-first by design: sensitive health/compound data should stay on-device
-  for now. Don't introduce a backend/cloud sync without discussing it first.
+  Local-first by design: sensitive health/compound data should stay on-device.
+  This still holds for `StackItem`, `DoseLog`, `DailyMetric`, and blood panel
+  data — don't move those to a backend without discussing it first.
+- **Supabase** (Postgres + Auth + Storage) backs the Community module only
+  (`src/lib/supabaseClient.ts`, `supabase/migrations/`). It is a deliberate,
+  scoped exception to local-first — see "Phase 1 — Community" above. Don't
+  use Supabase as a default for other domains.
 - **Repository pattern** — all DB access goes through `src/db/*Repository.ts`
   files (`stackRepository.ts`, `metricsRepository.ts`, `bloodRepository.ts`).
   Screens should never call `getDb()` directly.
@@ -102,75 +131,110 @@ once for being "obviously AI-generated."
 
 ## Current state (as of handoff)
 
-Already built and type-checking clean:
+Already built and type-checking clean (`npx tsc --noEmit` → zero errors), and
+runtime-verified by actually driving the app (headless Chromium against the
+Expo web target — see "Running/testing this app" below):
 
-- `app.json` — dark theme, expo-router/expo-sqlite/expo-notifications plugins
-  configured, bundle IDs set to `com.aeterna.app`.
+- `app.json` / `metro.config.js` — dark theme, expo-router/expo-sqlite/
+  expo-notifications plugins configured, bundle IDs `com.aeterna.app`. Metro
+  is configured to resolve expo-sqlite's wasm asset on web.
 - `src/theme/tokens.ts` — full design token system (colors, spacing, type
   scale, evidence-tier and category color maps).
 - `src/types/models.ts` — core domain types: `Compound`, `StackItem`,
-  `DoseLog`, `DailyMetric`, `BloodPanel`/`BloodMarker`, `Article`.
-- `src/data/compounds.ts` — seed library of 12 compounds (retatrutide,
-  cagrilintide, BPC-157, TB-500, GHK-Cu, NAD+ precursors, MOTS-c, SS-31,
-  epitalon, CJC-1295+ipamorelin, semax, selank) with real evidence-tier
-  classification and sourced figures.
-- `src/data/markerDefinitions.ts` — reference blood marker definitions
-  (lab range vs longevity-optimal range) for ~18 common markers.
-- `src/db/client.ts` — SQLite schema + migrations (stack_items, dose_logs,
-  daily_metrics, blood_panels, blood_markers tables).
-- `src/db/stackRepository.ts` — full CRUD for stack items + dose logging,
-  including injection-site-rotation lookup (`getLastInjectionSiteForItem`)
-  and auto-decrementing vial inventory on dose log.
-- `src/db/metricsRepository.ts` — daily metric upsert-by-date + range queries.
-- `src/db/bloodRepository.ts` — blood panel + marker CRUD, per-marker
-  history query for trend charts.
-- `app/_layout.tsx` — root layout, DB init on boot, dark status bar.
-- `app/(tabs)/_layout.tsx` — 4-tab bottom nav (Stack / Günlük / Kütüphane /
-  Profil) using Ionicons.
-- `app/(tabs)/index.tsx` — **Stack tab**: wired to `listStackItems`, renders
-  real data, has empty state. Card UI is intentionally minimal — needs the
-  real `StackItemCard` component (see TODO comment in file).
-- `app/(tabs)/library.tsx` — **Library tab**: full compound list from seed
-  data, category dot + evidence tier badge, navigates to detail on tap.
-  Functional, not just a stub.
-- `app/(tabs)/log.tsx`, `app/(tabs)/profile.tsx` — **bare placeholders**,
-  title only. These need real implementation.
-- `app/compound/[id].tsx` — **Compound detail screen**: fully built out
-  (mechanism, evidence summary, dose stats grid, caution box, sources list).
-  Missing only the "Add to Stack" CTA wiring (noted in TODO comment).
+  `DoseLog`, `DailyMetric` (now includes `caloriesConsumed`,
+  `caloriesBurned`, `waterMl`), `BloodPanel`/`BloodMarker`, `Article`.
+- `src/types/community.ts` — Community domain types (`CommunityPost`,
+  `CommunityComment`, `Profile`), separate from the local-first models above.
+- `src/data/compounds.ts` — seed library of 12 compounds with real
+  evidence-tier classification and sourced figures.
+- `src/data/markerDefinitions.ts` — reference blood marker definitions for
+  ~18 common markers.
+- `src/db/client.ts` + `src/db/*Repository.ts` — local-first SQLite layer:
+  stack items + dose logging (incl. injection-site rotation and vial
+  inventory decrement), daily metrics upsert-by-date, blood panel/marker CRUD.
+- `src/lib/supabaseClient.ts`, `src/lib/communityRepository.ts`,
+  `src/lib/useSession.ts` — Community's Supabase layer (auth, posts,
+  comments, reports, blocking, image upload). Degrades gracefully to a
+  "not configured" state when `EXPO_PUBLIC_SUPABASE_*` env vars are absent —
+  see "Running/testing this app".
+- `supabase/migrations/0001_community.sql` — full schema for
+  `profiles`/`community_posts`/`comments`/`reports`/`blocked_users` + RLS
+  policies + the `community-images` storage bucket. Not yet applied to a
+  real project (see Known gaps).
+- `app/_layout.tsx` — root layout, DB init on boot, dark status bar, modal
+  routes for add-to-stack and community create/post-detail.
+- `app/(tabs)/_layout.tsx` — 5-tab bottom nav (Stack / Günlük / Kütüphane /
+  Topluluk / Profil).
+- `app/(tabs)/index.tsx` — **Stack tab**: real data, empty state, "+" button
+  to Library. Card UI is intentionally minimal — still needs the real
+  `StackItemCard` component (see TODO comment in file).
+- `app/(tabs)/library.tsx` — **Library tab**: full compound list, navigates
+  to detail on tap.
+- `app/(tabs)/log.tsx` — **Log tab**: today's calorie-in/calorie-out/water
+  entry form (upsert by date). Dose timeline and the rest of `DailyMetric`
+  (weight/sleep/mood/energy) still need a form — see next steps.
+- `app/(tabs)/community.tsx`, `app/community/post/[id].tsx`,
+  `app/community/create.tsx` — **Topluluk**: email/password auth, feed,
+  post detail + comments, create-post (gallery image → Storage upload),
+  report and block actions. No admin moderation UI by design (see
+  "Phase 1 — Community").
+- `app/(tabs)/profile.tsx` — **bare placeholder**, title only.
+- `app/compound/[id].tsx` — compound detail, including the "Stack'e ekle"
+  CTA that opens `app/stack/add/[compoundId].tsx`.
+- `app/stack/add/[compoundId].tsx` — Add to Stack form (dose, unit,
+  frequency, route, reminder times).
+
+## Running/testing this app in a sandboxed/headless environment
+
+There's no iOS/Android simulator in CI-style sandboxes. The verified path:
+`npx expo start --localhost`, then drive the **web** target
+(`http://localhost:8081`) with headless Chromium — `expo-sqlite` and
+`react-native-web` both work there, so this exercises real rendering and
+local-DB writes, not just Metro bundling. Community's Supabase calls will
+fail against a real network from a sandboxed container without live
+credentials; expect "Bağlantı kurulamadı" rather than a crash — that's
+`toTurkishErrorMessage()` in `src/lib/communityRepository.ts` working as
+intended, not a bug.
 
 ## Immediate next steps (suggested priority)
 
-1. Run `npx expo start` and verify the app actually boots on a simulator —
-   this has NOT been runtime-tested yet, only type-checked. Fix whatever
-   breaks at runtime (Metro bundler issues, native module linking, etc).
-2. Build "Add to Stack" flow: a form (compound picker from library → dose,
-   unit, frequency, route, reminder times) that calls `createStackItem`.
-   This is the single highest-value missing piece — right now you can browse
-   the library but can't actually populate your stack.
-3. Build out the Stack tab card UI properly (see TODO in `index.tsx`):
+1. **Provision the real Supabase project.** Nothing in this handoff has
+   network access to create one. Create a project, run
+   `supabase/migrations/0001_community.sql` against it (SQL Editor or
+   `supabase db push`), copy the project URL + anon key into `.env` (see
+   `.env.example`). Until this is done, Topluluk shows "yapılandırılmamış."
+2. Build out the Stack tab card UI properly (see TODO in `index.tsx`):
    next-dose-due indicator, quick-log button, swipe actions.
-4. Build the dose logging flow (tap a stack item → log dose taken, optionally
+3. Build the dose logging flow (tap a stack item → log dose taken, optionally
    pick injection site from a body map — even a simple 8-button grid is fine
-   for v1, doesn't need to be a literal SVG body diagram yet).
-5. Build out `log.tsx`: today's metric entry form + today's dose timeline.
-6. Build out `profile.tsx`: at minimum, settings + blood panel history list
-   + an "Evidence Tier Framework" explainer screen (this is good for trust
-   if the app is ever shown to others).
-7. Notifications: wire `expo-notifications` to actually schedule reminders
-   based on `StackItem.reminderTimes` — currently the data model supports
-   this but nothing schedules real OS notifications yet.
+   for v1).
+4. Build out the rest of `log.tsx`: weight/sleep/mood/energy entry, today's
+   dose timeline, link to blood panel entry.
+5. Build out `profile.tsx`: settings, blood panel history list, an
+   "Evidence Tier Framework" explainer screen.
+6. Notifications: wire `expo-notifications` to actually schedule reminders
+   based on `StackItem.reminderTimes` — the data model supports this but
+   nothing schedules real OS notifications yet.
 
 ## Known gaps / things to watch
 
 - No icon/splash assets beyond Expo's defaults — `assets/icon.png` etc. are
-  placeholder. Will need real ÆTERNA app icon at some point (NOT the
-  Instagram gold-gradient logo as-is — that won't read well at icon size;
-  may need a simplified glyph-only version).
+  placeholder.
 - No tests written yet.
-- No auth/backend — fully local. If multi-device sync or the "open to
-  ÆTERNA's audience" phase becomes real, that's a deliberate architecture
-  conversation (likely Supabase or similar), not a default to reach for.
+- **No live Supabase project exists yet** — `supabase/migrations/0001_community.sql`
+  is written and ready but has never been run against a real database, and
+  the Community module has only been verified at the UI/validation level
+  (forms, navigation, graceful error handling), not against a real backend
+  (real sign-up, real image upload, real RLS behavior). Provisioning and
+  full backend testing needs whoever has Supabase account access.
+- Auth/backend exists only for the Community module (Supabase email/password
+  auth + Postgres + Storage). Stack/dose/metrics/blood data has no sync and
+  no account system — still fully local, still single-device.
+- Magic-link auth was considered and dropped in favor of email/password —
+  magic link needs deep-link redirect URL configuration that's hard to
+  verify without a live project; revisit if the owner prefers passwordless.
+- Community feed shows no avatars/profile photos, just `display_name` set at
+  sign-up — there's no profile-editing screen yet.
 - Turkish character handling: make sure any new UI text uses correct Turkish
   characters (ş, ğ, ı, İ, ö, ü, ç) — the system font stack should cover this
   fine but double-check on both platforms.

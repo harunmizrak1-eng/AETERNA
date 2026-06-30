@@ -33,6 +33,8 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="compound/[id]" options={{ presentation: 'card', headerShown: false }} />
         <Stack.Screen name="stack/add/[compoundId]" options={{ presentation: 'modal', headerShown: false }} />
+        <Stack.Screen name="community/post/[id]" options={{ presentation: 'card', headerShown: false }} />
+        <Stack.Screen name="community/create" options={{ presentation: 'modal', headerShown: false }} />
       </Stack>
     </SafeAreaProvider>
   );

@@ -38,6 +38,12 @@
           "icon": "./assets/icon.png",
           "color": "#B8922A"
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Topluluk'a paylaşım eklemek için fotoğraflarına erişim gerekiyor."
+        }
       ]
     ],
     "experiments": {
