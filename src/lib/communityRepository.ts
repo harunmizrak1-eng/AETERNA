@@ -49,6 +49,11 @@ export async function signOut() {
 
 // ── Posts ────────────────────────────────────────────────────────────────
 
+// community_posts.user_id / comments.user_id reference auth.users, not
+// public.profiles, so PostgREST has no FK to walk for a `profiles(...)`
+// embed (confirmed against the live project: PGRST200 "no relationship
+// between community_posts and profiles"). Fetch display names separately
+// and merge client-side instead of relying on embedding.
 type PostRow = {
   id: string;
   user_id: string;
@@ -57,15 +62,14 @@ type PostRow = {
   related_compound_id: string | null;
   week_number: number | null;
   created_at: string;
-  profiles: { display_name: string } | null;
   comments: { count: number }[];
 };
 
-function rowToPost(row: PostRow): CommunityPost {
+function rowToPost(row: PostRow, names: Map<string, string>): CommunityPost {
   return {
     id: row.id,
     userId: row.user_id,
-    authorDisplayName: row.profiles?.display_name ?? 'Kullanıcı',
+    authorDisplayName: names.get(row.user_id) ?? 'Kullanıcı',
     imageUrl: row.image_url,
     caption: row.caption,
     relatedCompoundId: row.related_compound_id,
@@ -75,25 +79,36 @@ function rowToPost(row: PostRow): CommunityPost {
   };
 }
 
+async function fetchDisplayNames(userIds: string[]): Promise<Map<string, string>> {
+  const client = requireClient();
+  const uniqueIds = [...new Set(userIds)];
+  if (uniqueIds.length === 0) return new Map();
+  const { data, error } = await client.from('profiles').select('id, display_name').in('id', uniqueIds);
+  if (error) throw error;
+  return new Map((data ?? []).map((p: { id: string; display_name: string }) => [p.id, p.display_name]));
+}
+
+const POST_COLUMNS = 'id, user_id, image_url, caption, related_compound_id, week_number, created_at, comments(count)';
+
 export async function listPosts(): Promise<CommunityPost[]> {
   const client = requireClient();
   const { data, error } = await client
     .from('community_posts')
-    .select('id, user_id, image_url, caption, related_compound_id, week_number, created_at, profiles(display_name), comments(count)')
+    .select(POST_COLUMNS)
     .order('created_at', { ascending: false });
   if (error) throw error;
-  return ((data ?? []) as unknown as PostRow[]).map(rowToPost);
+  const rows = (data ?? []) as unknown as PostRow[];
+  const names = await fetchDisplayNames(rows.map((r) => r.user_id));
+  return rows.map((row) => rowToPost(row, names));
 }
 
 export async function getPost(id: string): Promise<CommunityPost> {
   const client = requireClient();
-  const { data, error } = await client
-    .from('community_posts')
-    .select('id, user_id, image_url, caption, related_compound_id, week_number, created_at, profiles(display_name), comments(count)')
-    .eq('id', id)
-    .single();
+  const { data, error } = await client.from('community_posts').select(POST_COLUMNS).eq('id', id).single();
   if (error) throw error;
-  return rowToPost(data as unknown as PostRow);
+  const row = data as unknown as PostRow;
+  const names = await fetchDisplayNames([row.user_id]);
+  return rowToPost(row, names);
 }
 
 export async function createPost(params: {
@@ -132,10 +147,12 @@ export async function createPost(params: {
       related_compound_id: params.relatedCompoundId ?? null,
       week_number: params.weekNumber ?? null,
     })
-    .select('id, user_id, image_url, caption, related_compound_id, week_number, created_at, profiles(display_name), comments(count)')
+    .select(POST_COLUMNS)
     .single();
   if (error) throw error;
-  return rowToPost(data as unknown as PostRow);
+  const row = data as unknown as PostRow;
+  const names = await fetchDisplayNames([row.user_id]);
+  return rowToPost(row, names);
 }
 
 // ── Comments ─────────────────────────────────────────────────────────────
@@ -146,29 +163,32 @@ type CommentRow = {
   user_id: string;
   body: string;
   created_at: string;
-  profiles: { display_name: string } | null;
 };
 
-function rowToComment(row: CommentRow): CommunityComment {
+function rowToComment(row: CommentRow, names: Map<string, string>): CommunityComment {
   return {
     id: row.id,
     postId: row.post_id,
     userId: row.user_id,
-    authorDisplayName: row.profiles?.display_name ?? 'Kullanıcı',
+    authorDisplayName: names.get(row.user_id) ?? 'Kullanıcı',
     body: row.body,
     createdAt: row.created_at,
   };
 }
 
+const COMMENT_COLUMNS = 'id, post_id, user_id, body, created_at';
+
 export async function listComments(postId: string): Promise<CommunityComment[]> {
   const client = requireClient();
   const { data, error } = await client
     .from('comments')
-    .select('id, post_id, user_id, body, created_at, profiles(display_name)')
+    .select(COMMENT_COLUMNS)
     .eq('post_id', postId)
     .order('created_at', { ascending: true });
   if (error) throw error;
-  return ((data ?? []) as unknown as CommentRow[]).map(rowToComment);
+  const rows = (data ?? []) as unknown as CommentRow[];
+  const names = await fetchDisplayNames(rows.map((r) => r.user_id));
+  return rows.map((row) => rowToComment(row, names));
 }
 
 export async function addComment(postId: string, body: string): Promise<CommunityComment> {
@@ -181,10 +201,12 @@ export async function addComment(postId: string, body: string): Promise<Communit
   const { data, error } = await client
     .from('comments')
     .insert({ post_id: postId, user_id: userId, body })
-    .select('id, post_id, user_id, body, created_at, profiles(display_name)')
+    .select(COMMENT_COLUMNS)
     .single();
   if (error) throw error;
-  return rowToComment(data as unknown as CommentRow);
+  const row = data as unknown as CommentRow;
+  const names = await fetchDisplayNames([row.user_id]);
+  return rowToComment(row, names);
 }
 
 // ── Reports & blocking ──────────────────────────────────────────────────
