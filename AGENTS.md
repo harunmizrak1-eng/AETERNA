@@ -159,8 +159,14 @@ Expo web target — see "Running/testing this app" below):
   see "Running/testing this app".
 - `supabase/migrations/0001_community.sql` — full schema for
   `profiles`/`community_posts`/`comments`/`reports`/`blocked_users` + RLS
-  policies + the `community-images` storage bucket. Not yet applied to a
-  real project (see Known gaps).
+  policies + the `community-images` storage bucket. **Applied and verified**
+  against the real project (`ymypzrqidcaadrpgarxk`) — tables, RLS (post/
+  comment visibility filtered by `blocked_users`, insert-spoofing blocked,
+  reports write-only, anon denied), the `handle_new_user` trigger, and
+  storage path-scoped upload policies were all exercised end-to-end with
+  real auth sessions, then the test data was deleted. `EXPO_PUBLIC_SUPABASE_*`
+  still needs to go in your own local `.env` (gitignored, never committed)
+  to actually run the app against it.
 - `app/_layout.tsx` — root layout, DB init on boot, dark status bar, modal
   routes for add-to-stack and community create/post-detail.
 - `app/(tabs)/_layout.tsx` — 5-tab bottom nav (Stack / Günlük / Kütüphane /
@@ -191,28 +197,28 @@ There's no iOS/Android simulator in CI-style sandboxes. The verified path:
 (`http://localhost:8081`) with headless Chromium — `expo-sqlite` and
 `react-native-web` both work there, so this exercises real rendering and
 local-DB writes, not just Metro bundling. Community's Supabase calls will
-fail against a real network from a sandboxed container without live
-credentials; expect "Bağlantı kurulamadı" rather than a crash — that's
-`toTurkishErrorMessage()` in `src/lib/communityRepository.ts` working as
-intended, not a bug.
+fail without live credentials in `.env`; expect "Bağlantı kurulamadı"
+rather than a crash — that's `toTurkishErrorMessage()` in
+`src/lib/communityRepository.ts` working as intended, not a bug. Even with
+real credentials, headless Chromium in this sandbox can't reach the public
+internet through the environment's proxy (server-side tools like curl can —
+see Known gaps), so browser-driven Community testing here is limited to the
+"not configured" / graceful-error paths. Use curl with a real user's
+session JWT (`/auth/v1/token?grant_type=password`) to exercise the actual
+Supabase calls instead.
 
 ## Immediate next steps (suggested priority)
 
-1. **Provision the real Supabase project.** Nothing in this handoff has
-   network access to create one. Create a project, run
-   `supabase/migrations/0001_community.sql` against it (SQL Editor or
-   `supabase db push`), copy the project URL + anon key into `.env` (see
-   `.env.example`). Until this is done, Topluluk shows "yapılandırılmamış."
-2. Build out the Stack tab card UI properly (see TODO in `index.tsx`):
+1. Build out the Stack tab card UI properly (see TODO in `index.tsx`):
    next-dose-due indicator, quick-log button, swipe actions.
-3. Build the dose logging flow (tap a stack item → log dose taken, optionally
+2. Build the dose logging flow (tap a stack item → log dose taken, optionally
    pick injection site from a body map — even a simple 8-button grid is fine
    for v1).
-4. Build out the rest of `log.tsx`: weight/sleep/mood/energy entry, today's
+3. Build out the rest of `log.tsx`: weight/sleep/mood/energy entry, today's
    dose timeline, link to blood panel entry.
-5. Build out `profile.tsx`: settings, blood panel history list, an
+4. Build out `profile.tsx`: settings, blood panel history list, an
    "Evidence Tier Framework" explainer screen.
-6. Notifications: wire `expo-notifications` to actually schedule reminders
+5. Notifications: wire `expo-notifications` to actually schedule reminders
    based on `StackItem.reminderTimes` — the data model supports this but
    nothing schedules real OS notifications yet.
 
@@ -221,12 +227,14 @@ intended, not a bug.
 - No icon/splash assets beyond Expo's defaults — `assets/icon.png` etc. are
   placeholder.
 - No tests written yet.
-- **No live Supabase project exists yet** — `supabase/migrations/0001_community.sql`
-  is written and ready but has never been run against a real database, and
-  the Community module has only been verified at the UI/validation level
-  (forms, navigation, graceful error handling), not against a real backend
-  (real sign-up, real image upload, real RLS behavior). Provisioning and
-  full backend testing needs whoever has Supabase account access.
+- The Supabase project is live and the schema is applied and verified (see
+  above) — but only at the protocol level (curl + real auth sessions). A
+  full UI-driven (headless-browser) end-to-end run against the live project
+  hasn't happened: in this sandboxed setup, headless Chromium can't reach
+  the public internet through the environment's outbound proxy at all (a
+  bare `fetch('https://example.com')` from the page fails too — confirmed
+  not Supabase- or app-specific), while server-side tools (curl, Node
+  fetch) go through it fine. Worth a real on-device/simulator pass.
 - Auth/backend exists only for the Community module (Supabase email/password
   auth + Postgres + Storage). Stack/dose/metrics/blood data has no sync and
   no account system — still fully local, still single-device.
