@@ -44,7 +44,9 @@
         {
           "photosPermission": "Topluluk'a paylaşım eklemek için fotoğraflarına erişim gerekiyor."
         }
-      ]
+      ],
+      "expo-font",
+      "expo-status-bar"
     ],
     "experiments": {
       "typedRoutes": true

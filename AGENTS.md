@@ -1,6 +1,11 @@
 # Expo HAS CHANGED
 
-Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before writing any code.
+Read the exact versioned docs at https://docs.expo.dev/versions/v56.0.0/ before writing any code.
+
+The project runs Expo SDK 56, not 57 — it was downgraded because the
+published Play Store build of Expo Go didn't yet support SDK 57 on real
+devices ("Project is incompatible with this version of Expo Go"). Don't
+bump back to 57 without checking Expo Go's current supported SDK first.
 
 ---
 
