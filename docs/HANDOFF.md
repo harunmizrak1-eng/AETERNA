@@ -33,14 +33,29 @@ rejected dashboard attempt off the main branch.
 - Preserved the rejected dashboard attempt on branch `rejected-dashboard-wip`
   (commit `990a4d1`); the main branch working tree no longer carries those
   changes.
+- Made the SparkyFitness/docs refactor official on the main branch (commit
+  `aef28e7`): `AGENTS.md`, `CLAUDE.md`, and `docs/` are now committed.
+- Resolved the SparkyFitness commercial-license open risk; recorded in
+  `docs/DECISIONS.md` and `AGENTS.md`.
+- Completed the Sprint 0 module-adoption audit: SparkyFitness foundation
+  audit plus donor audits of Medplum, Fasten Health, openScale, and
+  Gadgetbridge. Full findings, licenses, reusable concepts, files worth
+  studying, duplication risk, and adopt/adapt/reject decisions are in
+  `docs/MODULE_ADOPTION_REPORT.md`. Summary: SparkyFitness adopt (confirmed);
+  Medplum adapt (AuditEvent/Provenance/Consent vocabulary only, no code);
+  openScale adapt (body-composition formulas only, reimplemented from source
+  papers, not code) and reject its Bluetooth-scale integration; Fasten
+  Health reject (its real conflict-resolution logic is closed-source, not in
+  the public repo); Gadgetbridge reject (AGPL-3.0, DMCA history, no iOS
+  path, and ÆTERNA's roadmap already excludes this integration model by
+  name).
 
 ## Known working-tree state
 
-The rejected dashboard UI changes (`app/(tabs)/index.tsx`, `app/_layout.tsx`,
-`app/stack/log/`, `src/components/`) have been moved to branch
-`rejected-dashboard-wip` at commit `990a4d1` and are no longer present in this
-branch's working tree. The remaining working-tree changes on this branch are
-the documentation refactor (`AGENTS.md`, `CLAUDE.md`, `docs/`).
+Working tree has four changed files, all documentation, no application code:
+`AGENTS.md` (modified), `docs/DECISIONS.md` (modified), `docs/HANDOFF.md`
+(modified, this file), `docs/MODULE_ADOPTION_REPORT.md` (new, untracked).
+None of these are committed yet.
 
 ## Verification
 
@@ -49,10 +64,19 @@ the documentation refactor (`AGENTS.md`, `CLAUDE.md`, `docs/`).
   and planning tasks.
 - Claude Code `2.1.210` is installed globally. Interactive authentication is
   still pending and must be completed by the owner in a new terminal.
+- Module-adoption research (Medplum, Fasten Health, openScale, Gadgetbridge)
+  was performed via public repository/license/documentation research, not a
+  local clone (none exist in the references directory); each finding cites
+  its source. SparkyFitness was audited directly from the local reference
+  clone. No code was copied, no dependency was added, no application UI was
+  changed.
 
 ## Open risks
 
-- SparkyFitness commercial rights have not been evidenced in the repository.
+- ~~SparkyFitness commercial rights have not been evidenced in the repository.~~
+  Resolved 2026-07-15: owner states commercial-use permission was obtained
+  directly from the copyright holder; written evidence is retained privately.
+  See `docs/DECISIONS.md`.
 - iOS native build requires a supported macOS/Xcode environment or an explicitly
   approved remote build path.
 - The current app is still an Expo/SQLite prototype, not the validated Sparky
@@ -62,5 +86,11 @@ the documentation refactor (`AGENTS.md`, `CLAUDE.md`, `docs/`).
 
 ## Next task
 
-Begin Sprint 0 foundation validation only; do not begin migration. This
-requires explicit owner approval before any implementation work starts.
+The module-adoption audit is complete (`docs/MODULE_ADOPTION_REPORT.md`).
+Remaining Sprint 0 / Stage 0 deliverables are still open: SparkyFitness
+license evidence is resolved, but iOS and Android build/run evidence,
+HealthKit/Health Connect technical validation, and the coupling/
+migration-risk report have not been produced. Do not begin migration or
+any implementation work. Owner should review this audit and the resolved
+license decision, then explicitly approve which remaining Stage 0
+deliverable to tackle next.

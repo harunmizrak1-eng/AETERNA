@@ -17,6 +17,10 @@ invent evidence, or silently change a protocol.
 ## Permanent decisions
 
 - SparkyFitness is the only application foundation.
+- SparkyFitness has explicit commercial-use permission for this project, obtained
+  directly from the copyright holder (see `docs/DECISIONS.md`, 2026-07-15).
+  Treat this as resolved; do not re-audit or question it unless the upstream
+  repository's license changes or new information surfaces.
 - Expo SDK 56, React Native 0.85, React 19, and strict TypeScript remain pinned
   until an explicit, tested upgrade decision is recorded.
 - Other repositories are references or module donors only. Never add a second
