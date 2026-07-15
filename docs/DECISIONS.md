@@ -62,6 +62,76 @@ Consequences:
 - This decision is not re-audited unless the upstream repository's license
   changes or new information surfaces.
 
+## 2026-07-15 — ÆTERNA is an operating system, not a forked fitness app
+
+Decision:
+SparkyFitness is infrastructure only. The user must never experience ÆTERNA
+as a fitness-tracking app with a longevity layer bolted on — every screen,
+label, and flow must read as a purpose-built Longevity Operating System. The
+user should forget a fitness app exists underneath.
+
+Why:
+Owner directive: "En önemli karar — Ben Sparky'yi fork edilmiş fitness app
+olarak görmek istemiyorum. Ben onu ÆTERNA OS olarak görmek istiyorum. Yani
+kullanıcı fitness uygulaması kullandığını unutacak." (The most important
+decision — I don't want to see Sparky as a forked fitness app. I want to see
+it as ÆTERNA OS. The user will forget they're using a fitness app.) This
+reinforces, and takes precedence in spirit over, the existing
+`open-source-adoption-strategy.md` boundary that Sparky's UI, fitness-first
+navigation, and branding are never adopted.
+
+Rejected:
+Any framing of ÆTERNA internally or externally as "SparkyFitness with a
+longevity skin," a fork, or a fitness app. Reusing Sparky terminology
+(workouts-first navigation, gym/fitness copy, fitness-app visual tropes) even
+where the underlying feature is reused.
+
+Consequences:
+- Every reused SparkyFitness service/domain must be re-presented through
+  ÆTERNA's own vocabulary, navigation (Today/Protocol/Biomarkers/Track/
+  Library), and visual system before it reaches a user-facing screen —
+  infrastructure reuse never implies UI or copy reuse.
+- Product and design review should explicitly check new screens against this
+  standard: would a user describe this as "a longevity operating system," or
+  would they describe it as "a fitness app that also does peptides"? The
+  latter is a failed screen regardless of feature completeness.
+
+## 2026-07-15 — Community is a topic-based Study Club, not a social feed
+
+Decision:
+If/when Community re-enters scope (it remains a non-goal for V1 per
+`docs/ROADMAP.md`), its shape is a topic-based "Study Club," not a
+Discord-style chat/social feed. Structure discussion around fixed topic
+areas (e.g. Hair, Longevity, Recovery, Performance, Peptides, Nutrition)
+rather than open-ended channels, DMs, or a chronological social feed.
+
+Why:
+Owner directive: "Community — Ben olsam Discord gibi değil. Study Club gibi.
+Mesela Hair / Longevity / Recovery / Performance / Peptides / Nutrition." (If
+it were me, not like Discord. Like a Study Club. For example: Hair,
+Longevity, Recovery, Performance, Peptides, Nutrition.) This refines, and
+does not override, the existing Community capability already described in
+`docs/COMPETITIVE_PARITY_BLUEPRINT.md` capability #13 (case studies,
+protocol/research discussions, no follower counts or vanity metrics) and the
+Phase-1-Community note in the sibling `C:\Users\harun\AETERNA` checkout's
+`AGENTS.md`, which this document's Community non-goal currently supersedes
+for V1 scope purposes.
+
+Rejected:
+Real-time chat, DM-first design, follower/like-count-driven social mechanics,
+or an undifferentiated single feed.
+
+Consequences:
+- When Community is scoped for implementation, it organizes around a fixed
+  set of topic areas (curriculum-like, consistent with the study-club framing
+  and with `aeternamethod.com`'s own "Pillar" structure — metabolic,
+  cognitive, recovery, tissue/joint, sleep, hormonal — which may be a natural
+  starting topic taxonomy to reconcile against the Hair/Longevity/Recovery/
+  Performance/Peptides/Nutrition list above).
+- This is a scope refinement for a future stage, not a V1 authorization;
+  `docs/ROADMAP.md`'s non-goals for Community remain in force until an
+  explicit stage-entry decision is recorded.
+
 ## 2026-07-15 — Sequential Codex and Claude Code workflow
 
 Decision:

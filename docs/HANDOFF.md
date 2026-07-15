@@ -48,14 +48,43 @@ rejected dashboard attempt off the main branch.
   Health reject (its real conflict-resolution logic is closed-source, not in
   the public repo); Gadgetbridge reject (AGPL-3.0, DMCA history, no iOS
   path, and ÆTERNA's roadmap already excludes this integration model by
-  name).
+  name). Committed as `61f2601`.
+- Re-challenged all three REJECT donor decisions (Fasten Health, openScale's
+  Bluetooth-scale piece, Gadgetbridge) against six questions (most valuable
+  idea, independent-reimplementability, UI, database model, algorithm,
+  keep-or-flip). Fasten Health stays REJECT (the one reusable pattern —
+  sync-job/event lifecycle — is too generic to credit to Fasten). openScale's
+  Bluetooth piece moves to a deferred, pattern-only ADAPT (abstract
+  per-vendor driver interface only, still no protocol code, still not
+  in current scope). Gadgetbridge stays REJECT for code/protocol but gains a
+  named ADAPT for two pure UI concepts (coverage/gap timeline, device/
+  permission-status list). Folded into `docs/MODULE_ADOPTION_REPORT.md`
+  (per-project notes, summary table, and recommendations updated).
+- Recorded two product-positioning decisions in `docs/DECISIONS.md`: ÆTERNA
+  must read as an operating system, never a forked fitness app (user should
+  forget SparkyFitness is underneath); Community, if/when it re-enters
+  scope, is a topic-based "Study Club" (Hair/Longevity/Recovery/Performance/
+  Peptides/Nutrition), not a Discord-style social feed.
+- Produced `docs/COMPETITIVE_UX_REPORT.md`: UX/onboarding/navigation/
+  premium-feel benchmarking of OneTwenty, Marek Health, Ways2Well,
+  Ultrahuman, HeadsUp Health, and ÆTERNA's own `aeternamethod.com`.
+- Produced `docs/SPARKYFITNESS_FEATURE_COVERAGE.md`: feature-by-feature
+  reuse/refactor/build-new audit of ÆTERNA's full product-feature list
+  against the real SparkyFitness codebase. Headline finding: SparkyFitness's
+  medication/GLP-1 domain (`injection_entries`, `medication_pens`,
+  `medication_schedules`) is a strong Refactor candidate for ÆTERNA's Dose
+  Logging, Vial/Inventory, and Supplements — not the Build New work
+  originally assumed. Protocol, the Peptide/Compound engine, Biomarkers, and
+  Today remain genuine Build New.
 
 ## Known working-tree state
 
-Working tree has four changed files, all documentation, no application code:
-`AGENTS.md` (modified), `docs/DECISIONS.md` (modified), `docs/HANDOFF.md`
-(modified, this file), `docs/MODULE_ADOPTION_REPORT.md` (new, untracked).
-None of these are committed yet.
+Working tree has four changed files, all documentation, no application
+code: `docs/DECISIONS.md` (modified, two new decision entries),
+`docs/MODULE_ADOPTION_REPORT.md` (modified, REJECT-challenge notes folded
+in), `docs/COMPETITIVE_UX_REPORT.md` (new, untracked),
+`docs/SPARKYFITNESS_FEATURE_COVERAGE.md` (new, untracked). None of these are
+committed yet.
 
 ## Verification
 
@@ -70,6 +99,17 @@ None of these are committed yet.
   its source. SparkyFitness was audited directly from the local reference
   clone. No code was copied, no dependency was added, no application UI was
   changed.
+- Competitive UX research (OneTwenty, Ways2Well, Ultrahuman, HeadsUp Health)
+  used live browsing where accessible and WebFetch/WebSearch/third-party
+  reviews as fallback; each is noted per-site. Marek Health blocks non-US
+  server IPs — its findings are reconstructed from secondary sources and
+  explicitly flagged lower-confidence. No site copy was reproduced verbatim
+  beyond short attributed quotes.
+- The SparkyFitness feature-coverage audit was performed against the local
+  reference clone using its own navigation docs (`agent-docs/file-and-domain-
+  reference.md`, `docs/content/8.developer/4.database.md`) rather than a
+  blind full-repo search; findings cite specific tables/files. No code was
+  copied, no dependency was added, no application UI was changed.
 
 ## Open risks
 
@@ -86,11 +126,14 @@ None of these are committed yet.
 
 ## Next task
 
-The module-adoption audit is complete (`docs/MODULE_ADOPTION_REPORT.md`).
-Remaining Sprint 0 / Stage 0 deliverables are still open: SparkyFitness
-license evidence is resolved, but iOS and Android build/run evidence,
-HealthKit/Health Connect technical validation, and the coupling/
-migration-risk report have not been produced. Do not begin migration or
-any implementation work. Owner should review this audit and the resolved
-license decision, then explicitly approve which remaining Stage 0
-deliverable to tackle next.
+Four documentation files are ready for owner review but not yet committed
+(see Known working-tree state): the updated module-adoption report, the two
+new positioning decisions, the competitive UX report, and the SparkyFitness
+feature-coverage report.
+
+Remaining Sprint 0 / Stage 0 deliverables are still open regardless: iOS and
+Android build/run evidence, HealthKit/Health Connect technical validation,
+and the coupling/migration-risk report have not been produced. Do not begin
+migration or any implementation work. Owner should review the new reports,
+then explicitly approve which remaining Stage 0 deliverable — or which
+Today/Biomarkers screen design informed by the UX report — to tackle next.

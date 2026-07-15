@@ -194,6 +194,17 @@ real infrastructure scope, not an incidental detail.
   a `DataSource`-style shape is wanted for reference, re-derive it from the
   public FHIR/SMART-on-FHIR specification directly, not from this GPL-3.0
   codebase.
+- **Reject-challenge note (2026-07-15):** re-examined against "what's the one
+  idea we'd lose." The `background_job`/`event_bus` async per-source
+  sync-job lifecycle (`queued`/`running`/`partial`/`completed`/`failed`/
+  `cancelled`) maps closely onto ÆTERNA's own already-designed `SyncBatch`
+  status vocabulary in `docs/DATA_MODEL.md`, and is independently
+  reimplementable in an afternoon — it's a generic distributed-systems
+  pattern, not Fasten-specific expression, so no GPL or clean-room concern
+  applies to using it as validation. This does not change the decision: it
+  confirms ÆTERNA's own `SyncBatch` design is already sound rather than
+  adding anything new, so crediting it to Fasten as a donor would overstate
+  the repo's contribution. Fasten Health remains **Reject**.
 
 ## 4. openScale — module donor
 
@@ -244,6 +255,21 @@ Bluetooth smart-scale integrations.
   later-phase item given its high cost and GPL exposure on the only public
   reference implementation — not worth pursuing before ÆTERNA's actual
   Phase 1 scope (Stack/Journal/Blood panel, per `AGENTS.md`) is solid.
+- **Reject-challenge note (2026-07-15), Bluetooth-scale piece specifically:**
+  the one idea worth keeping even under continued rejection is openScale's
+  `BluetoothCommunication` abstract-driver architecture — one interface, one
+  subclass per vendor protocol, instead of vendor-specific spaghetti code.
+  The *interface shape* is a standard Strategy/Adapter pattern with no IP
+  tied to openScale and is independently reimplementable with zero legal
+  exposure; the actual per-vendor GATT byte-parsing is not (translating that
+  logic line-by-line into TypeScript is still arguably a derivative work
+  under GPL-3.0, separate from the EULA reverse-engineering risk each vendor
+  protocol carries). **Decision updated: the Bluetooth-scale piece moves
+  from a flat Reject to a deferred Adapt (architecture pattern only)** — not
+  a scope change today, Bluetooth scale integration stays out of current
+  priority, but if it's ever pursued later the abstract-driver interface is
+  worth reusing as a reference; the protocol-parsing code itself stays
+  Reject permanently regardless of when this is revisited.
 
 ## 5. Gadgetbridge — module donor
 
@@ -302,6 +328,26 @@ and there is none.
   confirmed by AGPL-3.0 copyleft, documented DMCA/takedown history, EULA
   reverse-engineering exposure, and a hard iOS platform wall. The existing
   roadmap exclusion is correctly scoped; no exception is worth carving out.
+- **Reject-challenge note (2026-07-15):** re-examined for the single most
+  valuable idea being lost. That turned out to be broader than the
+  device-list pattern already noted above — Gadgetbridge's data-coverage/gap
+  timeline (a calendar-style view of which days have wearable data vs.
+  missing days) maps directly onto ÆTERNA's own stated need for
+  "calibration, missing-data and sync-status states"
+  (`docs/COMPETITIVE_PARITY_BLUEPRINT.md`) and its `DailyMetric`
+  `partial`/`stale` states. Both this and the device/permission-status list
+  are pure UI/UX patterns (comparable to a GitHub contribution graph or
+  generic OAuth-connection-status list) — independently reimplementable with
+  zero AGPL exposure, since copyleft protects code expression, not chart/
+  layout concepts. Checked and confirmed not worth pursuing further: its
+  per-device raw-BLE-sample database schema (no match for ÆTERNA's
+  already-aggregated `WearableMetric` model) and its sleep-stage/step
+  inference algorithms (solve a problem ÆTERNA doesn't have, since HealthKit/
+  Health Connect already deliver pre-computed metrics, never raw
+  accelerometer streams). **Decision updated: code/protocol/architecture
+  stays Reject; two specific UI concepts (coverage/gap timeline,
+  device/permission-status list) are elevated to a named Adapt** for
+  Stage 1B's sync-status screen design, with zero code or legal exposure.
 
 ## Summary table
 
@@ -309,9 +355,9 @@ and there is none.
 | --- | --- | --- | --- | --- | --- | --- |
 | SparkyFitness | Non-commercial (custom); commercial permission obtained, see `docs/DECISIONS.md` | Resolved | Exact (Expo 56/RN 0.85) | — (is the foundation) | — | **Adopt** (confirmed) |
 | Medplum | Apache-2.0 | None | Types/docs only; server irrelevant | Low | Low-medium | **Adapt** (vocabulary, not code) |
-| Fasten Health | GPL-3.0 | High | None (Go/Angular) | Low, but moot | Medium-high, low payoff | **Reject** |
-| openScale | GPL-3.0 | High (code); formulas are public-domain science | None (Android-only) | Medium (formulas), high (BLE) | Low (formulas) / High (BLE) | **Adapt** formulas only, **reject** BLE |
-| Gadgetbridge | AGPL-3.0 | High | None (Android-only, no iOS path) | None under current roadmap | N/A | **Reject** |
+| Fasten Health | GPL-3.0 | High | None (Go/Angular) | Low, but moot | Medium-high, low payoff | **Reject** (sync-job/event lifecycle noted as validation only, not a donor credit) |
+| openScale | GPL-3.0 | High (code); formulas are public-domain science | None (Android-only) | Medium (formulas), high (BLE) | Low (formulas) / High (BLE) | **Adapt** formulas; **Adapt** (deferred, pattern-only) BLE driver interface; **Reject** BLE protocol code |
+| Gadgetbridge | AGPL-3.0 | High | None (Android-only, no iOS path) | None under current roadmap | N/A | **Reject** code/protocol; **Adapt** two UI concepts (coverage/gap timeline, device/permission list) |
 
 ## Recommendations / next steps
 
@@ -331,3 +377,20 @@ and there is none.
 5. Fasten Health is not a useful reference for ÆTERNA's `DataConflict`
    design — its real conflict-handling logic is closed-source. No follow-up
    needed.
+6. When Stage 1B's HealthKit/Health Connect sync-status screen is designed,
+   reference Gadgetbridge's coverage/gap-timeline and device/permission-list
+   UI concepts (see the Gadgetbridge reject-challenge note above) — pattern
+   only, no code.
+7. If Bluetooth smart-scale integration is ever revisited in a later phase,
+   reference openScale's abstract per-vendor driver interface shape (see the
+   openScale reject-challenge note above) as architecture, not its protocol
+   code.
+
+## Related reports
+
+- `docs/COMPETITIVE_UX_REPORT.md` — UX/onboarding/navigation/premium-feel
+  benchmarking of OneTwenty, Marek Health, Ways2Well, Ultrahuman, HeadsUp
+  Health, and ÆTERNA's own `aeternamethod.com`.
+- `docs/SPARKYFITNESS_FEATURE_COVERAGE.md` — feature-by-feature reuse/
+  refactor/build-new audit of ÆTERNA's full product-feature list against the
+  SparkyFitness codebase, extending the foundation audit in section 1 above.
