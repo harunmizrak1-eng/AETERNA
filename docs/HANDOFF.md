@@ -2,138 +2,184 @@
 
 ## State
 
-- Status: `AWAITING_APPROVAL`
-- Active stage: Stage 0 planning; execution has not started
-- Active branch: `claude/add-to-stack-workflow-pedznt`
-- Last agent: Claude Code
-- Updated: 2026-07-15, Europe/Istanbul
+- Status: `IN PROGRESS` — owner has made the Stage 1A exit-gate decision
+  (`docs/DECISIONS.md` 2026-07-16): keep Stage 1A open and implement
+  canonical Protocol Core completion work (S1A-16 through S1A-26) before
+  Stage 1B. This session is mid-execution; this HANDOFF.md section will be
+  rewritten with final state when this pass ends.
+- Active stage: **Stage 1A — ÆTERNA Foundation & Rebranding (Protocol Core)**, `IN PROGRESS`; exit gate reviewed and **not yet formally passed** — see `docs/STAGE_1A_EXIT_GATE_REVIEW.md`
+- Application repo: `AETERNA/aeterna-os`, branch `overnight/aeterna-product-integration`, HEAD `15b03c36` (verified 2026-07-16; superseded by further commits in this session — see the in-progress Stage 1A completion work below)
+- Last agent: Claude
+- Updated: 2026-07-16, Europe/Istanbul
 
 ## Approved task
 
-No implementation task is currently approved. The latest completed work was a
-documentation refactor, a targeted project assessment, and archiving the
-rejected dashboard attempt off the main branch.
+1. Continue `docs/UX_TRANSFORMATION_REVIEW.md`'s UX-01–UX-18 slice sequence
+   autonomously (UX-01–UX-15 complete as of this handoff).
+2. Diagnose and fix live bugs on request (Health Connect fix, below).
+3. Owner-directed Stage 1A hardening/product-alignment pass: (a) fix real
+   bugs across already-built UX-01–UX-15 surfaces, no new roadmap scope;
+   (b) produce a compound-content governance design document (no
+   implementation); (c) produce a Stage 1A exit-gate readiness review with
+   an explicit Stage 1B recommendation.
 
-## Current decisions
+## Work completed since HEAD `6b2dd592` (prior handoff)
 
-- SparkyFitness is the only application foundation.
-- Stage 1 is split into Stage 1A Protocol Core and Stage 1B Health Sync.
-- Stage 1B cannot start before the Stage 1A gate passes.
-- The existing Sparky dashboard and rejected ÆTERNA dashboard are not reused.
-- Nutrition, community, advanced AI, clinical portal, CGM, genetics, imaging,
-  and cohort analytics remain outside V1.
+### Health Connect fix — `6b2dd592`
 
-## Completed
+Fixed repeated "Failed reading OxygenSaturation: Health Connect client is
+not initialized" log spam (up to hundreds of lines per sync, ending in
+"Failed reading 159 fallback OxygenSaturation window(s)"). Root cause:
+nothing in the sync path guaranteed `initHealthConnect()` had run before
+reads started, especially in the `expo-background-task` headless JS
+context — every metric read then failed identically, and the existing
+fallback-window retry logic (built for transient per-window failures) kept
+splitting and retrying a failure that could never succeed. Fix caches the
+"not initialized" state after first detection and short-circuits every
+further native call (raw reads and cumulative aggregation, all record
+types) until the next successful `initHealthConnect()`, with exactly one
+calm `WARNING` log for the whole outage. Scoped entirely to
+`SparkyFitnessMobile/src/services/healthconnect/index.ts`. 7 new tests;
+full suite 77/77 (was 70); broader sync regression 92/92.
 
-- Added the canonical competitive parity blueprint.
-- Added roadmap stage gates and explicit non-goals.
-- Added the canonical domain model and status vocabulary.
-- Reduced `AGENTS.md` to permanent project and scope-control rules.
-- Performed a targeted inspection of the current Expo/SQLite prototype.
-- Preserved the rejected dashboard attempt on branch `rejected-dashboard-wip`
-  (commit `990a4d1`); the main branch working tree no longer carries those
-  changes.
-- Made the SparkyFitness/docs refactor official on the main branch (commit
-  `aef28e7`): `AGENTS.md`, `CLAUDE.md`, and `docs/` are now committed.
-- Resolved the SparkyFitness commercial-license open risk; recorded in
-  `docs/DECISIONS.md` and `AGENTS.md`.
-- Completed the Sprint 0 module-adoption audit: SparkyFitness foundation
-  audit plus donor audits of Medplum, Fasten Health, openScale, and
-  Gadgetbridge. Full findings, licenses, reusable concepts, files worth
-  studying, duplication risk, and adopt/adapt/reject decisions are in
-  `docs/MODULE_ADOPTION_REPORT.md`. Summary: SparkyFitness adopt (confirmed);
-  Medplum adapt (AuditEvent/Provenance/Consent vocabulary only, no code);
-  openScale adapt (body-composition formulas only, reimplemented from source
-  papers, not code) and reject its Bluetooth-scale integration; Fasten
-  Health reject (its real conflict-resolution logic is closed-source, not in
-  the public repo); Gadgetbridge reject (AGPL-3.0, DMCA history, no iOS
-  path, and ÆTERNA's roadmap already excludes this integration model by
-  name). Committed as `61f2601`.
-- Re-challenged all three REJECT donor decisions (Fasten Health, openScale's
-  Bluetooth-scale piece, Gadgetbridge) against six questions (most valuable
-  idea, independent-reimplementability, UI, database model, algorithm,
-  keep-or-flip). Fasten Health stays REJECT (the one reusable pattern —
-  sync-job/event lifecycle — is too generic to credit to Fasten). openScale's
-  Bluetooth piece moves to a deferred, pattern-only ADAPT (abstract
-  per-vendor driver interface only, still no protocol code, still not
-  in current scope). Gadgetbridge stays REJECT for code/protocol but gains a
-  named ADAPT for two pure UI concepts (coverage/gap timeline, device/
-  permission-status list). Folded into `docs/MODULE_ADOPTION_REPORT.md`
-  (per-project notes, summary table, and recommendations updated).
-- Recorded two product-positioning decisions in `docs/DECISIONS.md`: ÆTERNA
-  must read as an operating system, never a forked fitness app (user should
-  forget SparkyFitness is underneath); Community, if/when it re-enters
-  scope, is a topic-based "Study Club" (Hair/Longevity/Recovery/Performance/
-  Peptides/Nutrition), not a Discord-style social feed.
-- Produced `docs/COMPETITIVE_UX_REPORT.md`: UX/onboarding/navigation/
-  premium-feel benchmarking of OneTwenty, Marek Health, Ways2Well,
-  Ultrahuman, HeadsUp Health, and ÆTERNA's own `aeternamethod.com`.
-- Produced `docs/SPARKYFITNESS_FEATURE_COVERAGE.md`: feature-by-feature
-  reuse/refactor/build-new audit of ÆTERNA's full product-feature list
-  against the real SparkyFitness codebase. Headline finding: SparkyFitness's
-  medication/GLP-1 domain (`injection_entries`, `medication_pens`,
-  `medication_schedules`) is a strong Refactor candidate for ÆTERNA's Dose
-  Logging, Vial/Inventory, and Supplements — not the Build New work
-  originally assumed. Protocol, the Peptide/Compound engine, Biomarkers, and
-  Today remain genuine Build New.
+### Stage 1A hardening pass — `f0d34301`
 
-## Known working-tree state
+Audited TodayScreen, ProtocolScreen, BiomarkersScreen, DiaryScreen/Track,
+the write forms (CreatePenForm, CreateSymptomForm), and every shared
+`components/aeterna/` component for state consistency, accessibility,
+duplicated queries, and reuse gaps. Fixed 5 real, verified defects:
 
-Working tree has four changed files, all documentation, no application
-code: `docs/DECISIONS.md` (modified, two new decision entries),
-`docs/MODULE_ADOPTION_REPORT.md` (modified, REJECT-challenge notes folded
-in), `docs/COMPETITIVE_UX_REPORT.md` (new, untracked),
-`docs/SPARKYFITNESS_FEATURE_COVERAGE.md` (new, untracked). None of these are
-committed yet.
+1. **TodayScreen**: Sleep/HRV/resting-heart-rate rows permanently showed
+   "Calibrating" (implying incomplete data) even with a complete, real,
+   current value, because `hasTrend` was derived from `points.length >= 2`
+   and these three rows always pass `points: []`. Decoupled the state
+   label from sparkline availability.
+2. **ScheduledActionRow**: dose-logging rows wrapped the entire row
+   (summary text + "Mark taken"/"Skip" buttons) in one `accessible={true}`
+   container — VoiceOver/TalkBack collapse that into a single stop,
+   making the buttons unreachable by screen reader. Dose logging was not
+   actually completable with assistive technology. Fixed: the info row is
+   now its own accessible summary; the buttons stay independently
+   focusable.
+3. **BiomarkersScreen**: "Measurements/Trend unavailable" states had no
+   Retry action, unlike the identical pattern already on ProtocolScreen.
+   Added matching Retry buttons.
+4. **CreatePenForm**: Save had no guard, allowing a fully blank submission
+   that would write an unidentifiable, empty vial/pen record — inconsistent
+   with CreateSymptomForm's required-field gate. Now requires at least one
+   field.
+5. **TodayScreen + BiomarkersScreen**: both called
+   `fetchHealthDisplayData('7d')` under two different ad-hoc query keys,
+   doubling the native health read on every tab switch between them and
+   risking inconsistent values between the two screens. Added a shared
+   `healthDisplayQueryKey()` builder in `queryKeys.ts` (this codebase's
+   established convention, which these two screens had bypassed).
+
+Also closed a real coverage gap: `TodayScreen.tsx` — the app's primary
+destination — had zero dedicated tests before this pass. Added
+`__tests__/screens/TodayScreen.test.tsx` (6 tests), including a regression
+test for finding #1 above. Full touched-surface + regression suite:
+184/184 passing. typecheck and eslint clean on every touched file.
+
+### Compound content governance — `docs/COMPOUND_CONTENT_GOVERNANCE.md` (new, uncommitted in outer repo — see below)
+
+Product-design-only document (no code, no content, no migration) defining:
+compound/intervention taxonomy, monograph content fields, editorial roles,
+evidence-tier assignment criteria, the editorial/review workflow mapped
+onto `docs/DATA_MODEL.md`'s already-canonical `publication_status` states,
+versioning rules, regulatory-status handling (including the still-open
+per-country question), AI-assisted-content boundaries, canonical source
+strategy, reference policy, body-system and biomarker relationship rules,
+and content ownership. Directly answers the "compound-content governance"
+question `docs/DECISIONS.md`'s 2026-07-16 entry left open — the owner can
+approve or amend it before UX-16 work is authorized.
+
+### Stage 1A exit-gate review — `docs/STAGE_1A_EXIT_GATE_REVIEW.md` (new, uncommitted in outer repo — see below)
+
+Checked every named criterion in `docs/ROADMAP.md`'s Stage 1A exit gate
+against the actual codebase (not memory, not docs). Headline finding:
+**three of the exit gate's eight "baseline → ... → weekly review" legs
+don't exist as implemented features** — Baseline, Eligibility assessment,
+and Protocol activation are all explicitly deferred (matches
+`docs/DECISIONS.md`'s recorded decision, not an oversight), and a fourth,
+Safety Event Workflow, has zero backend implementation. Also found and
+verified: duplicate-dose-submission protection is client-only (no server
+constraint); data export does not cover the three new medication/symptom
+tables (deletion does, via cascade — verified table-by-table); Today
+correctly works without health sync. Full detail, evidence, and an
+explicit checklist for manual/device testing are in the document itself.
+**Recommendation: Stage 1B is not yet ready to start** — not due to any
+defect in Health Sync groundwork, but because Stage 1A's own exit gate has
+not formally passed. Three options are laid out for the owner in the
+document's §10.
+
+## Changed/dirty files and ownership
+
+**`aeterna-os`** — clean. The previously-flagged pre-existing
+`SparkyFitnessMobile/package.json` / `pnpm-lock.yaml` `@expo/ngrok` diff
+noted in every prior handoff is **no longer present** in the working tree
+(`git diff HEAD` on both files is empty) — nothing needed excluding from
+this session's commits.
+
+**Outer AETERNA repo (this repo)** — `docs/HANDOFF.md` (this file),
+`docs/COMPOUND_CONTENT_GOVERNANCE.md`, and
+`docs/STAGE_1A_EXIT_GATE_REVIEW.md` are new/updated by this session and
+**not committed** — per this project's established pattern, outer-repo
+`docs/` commits are left for the owner given several files already show as
+modified/untracked from sessions whose ownership was never resolved (see
+every prior handoff's note on `docs/COMPETITIVE_UX_REPORT.md` and others).
+This session did not touch or resolve any of those pre-existing files.
 
 ## Verification
 
-- Documentation paths and required headings were checked.
-- No application build, typecheck, lint, or test was run for the documentation
-  and planning tasks.
-- Claude Code `2.1.210` is installed globally. Interactive authentication is
-  still pending and must be completed by the owner in a new terminal.
-- Module-adoption research (Medplum, Fasten Health, openScale, Gadgetbridge)
-  was performed via public repository/license/documentation research, not a
-  local clone (none exist in the references directory); each finding cites
-  its source. SparkyFitness was audited directly from the local reference
-  clone. No code was copied, no dependency was added, no application UI was
-  changed.
-- Competitive UX research (OneTwenty, Ways2Well, Ultrahuman, HeadsUp Health)
-  used live browsing where accessible and WebFetch/WebSearch/third-party
-  reviews as fallback; each is noted per-site. Marek Health blocks non-US
-  server IPs — its findings are reconstructed from secondary sources and
-  explicitly flagged lower-confidence. No site copy was reproduced verbatim
-  beyond short attributed quotes.
-- The SparkyFitness feature-coverage audit was performed against the local
-  reference clone using its own navigation docs (`agent-docs/file-and-domain-
-  reference.md`, `docs/content/8.developer/4.database.md`) rather than a
-  blind full-repo search; findings cite specific tables/files. No code was
-  copied, no dependency was added, no application UI was changed.
+- Health Connect fix: 77/77 (`healthconnect/index.test.ts`), 92/92 broader
+  regression, typecheck + eslint clean.
+- Hardening pass: 184/184 across the full touched-surface + regression
+  suite, typecheck + eslint clean.
+- **No on-device verification was performed this session** (no physical
+  device access from this environment) — see
+  `docs/STAGE_1A_EXIT_GATE_REVIEW.md` §7–8 for the specific manual and
+  device testing checklists this leaves outstanding, most notably:
+  VoiceOver/TalkBack reachability of the dose-action buttons (this
+  session's fix should be confirmed under real assistive technology, not
+  just the structural test), and reproducing the original Health Connect
+  log-spam scenario to confirm the fix on a real Android device.
 
-## Open risks
+## Decisions and open risks
 
-- ~~SparkyFitness commercial rights have not been evidenced in the repository.~~
-  Resolved 2026-07-15: owner states commercial-use permission was obtained
-  directly from the copyright holder; written evidence is retained privately.
-  See `docs/DECISIONS.md`.
-- iOS native build requires a supported macOS/Xcode environment or an explicitly
-  approved remote build path.
-- The current app is still an Expo/SQLite prototype, not the validated Sparky
-  foundation.
-- Existing local domain types conflate StackItem, protocol schedule, vial, and
-  dose concepts and must not become the target model.
+- No new `docs/DECISIONS.md` entry was added this session — none of this
+  session's changes required a scope or architecture decision beyond what
+  the owner already directed (bug fix, bug fixes to existing surfaces,
+  and two new reference documents that make no unilateral product calls).
+- **Open risk, elevated by this session's review:** Stage 1A's exit gate
+  requires an owner decision among `docs/STAGE_1A_EXIT_GATE_REVIEW.md`
+  §10's three options before Stage 1B (or any further roadmap slice) can
+  proceed with a clear mandate. Proceeding as if Stage 1A were complete
+  because UX-01–UX-15 are would misrepresent what the exit gate actually
+  requires.
+- **Open risk, unchanged from every prior handoff:** the outer-repo
+  `docs/` changes flagged as uncommitted remain uncommitted and unreviewed
+  by any session since they first appeared.
+- **Open risk, unchanged:** `docs/ROADMAP.md`'s Stage 0 exit-gate items
+  (reproducible builds, automated-test baseline, live HealthKit/Health
+  Connect evidence) remain formally unresolved per
+  `docs/STAGE_0_COMPLETION_SUMMARY.md`.
 
 ## Next task
 
-Four documentation files are ready for owner review but not yet committed
-(see Known working-tree state): the updated module-adoption report, the two
-new positioning decisions, the competitive UX report, and the SparkyFitness
-feature-coverage report.
+Owner decision required — see `docs/STAGE_1A_EXIT_GATE_REVIEW.md` §10 and
+§11 for the full basis. In order of what needs the owner first:
 
-Remaining Sprint 0 / Stage 0 deliverables are still open regardless: iOS and
-Android build/run evidence, HealthKit/Health Connect technical validation,
-and the coupling/migration-risk report have not been produced. Do not begin
-migration or any implementation work. Owner should review the new reports,
-then explicitly approve which remaining Stage 0 deliverable — or which
-Today/Biomarkers screen design informed by the UX report — to tackle next.
+1. Choose how to treat the three missing exit-gate legs (accept the
+   current "tracked interventions" substitute as sufficient, authorize
+   Baseline/Eligibility/Protocol-activation/Safety-event as additional
+   Stage 1A scope, or split the difference with a named follow-up slice).
+2. Review `docs/COMPOUND_CONTENT_GOVERNANCE.md` and approve or amend it if
+   UX-16 is to be unblocked.
+3. Decide whether to commit the three new/updated outer-repo docs
+   (`HANDOFF.md`, `COMPOUND_CONTENT_GOVERNANCE.md`,
+   `STAGE_1A_EXIT_GATE_REVIEW.md`) alongside the other long-uncommitted
+   `docs/` changes, or handle them separately.
+
+No further roadmap-slice implementation should start until (1) is decided
+— the next agent should not assume Stage 1A is closed.

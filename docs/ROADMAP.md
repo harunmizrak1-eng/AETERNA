@@ -14,6 +14,17 @@ destination map; it does not authorize work outside the active stage.
 
 ## Stage 0 — Platform and design foundation
 
+**Status: EXIT GATE NOT PASSED — open release-blocking debt, not active work
+(status label corrected 2026-07-16; see `docs/DECISIONS.md`).** Stage 1A is
+the single active implementation stage (per this document's own "only one
+product stage may be active at a time" rule); Stage 0's evidence gap was
+knowingly carried forward by the 2026-07-15 "Stage 0 closed; move to Stage
+1A" decision below and remains open and unresolved, not currently being
+worked. The earlier `COMPLETE` label was incorrect and is preserved only as
+historical context in `docs/STAGE_0_COMPLETION_SUMMARY.md` and
+`docs/DECISIONS.md`. Dependencies, builds, tests, and live HealthKit/Health
+Connect behavior remain unvalidated.
+
 ### Deliverables
 
 - SparkyFitness license and commercial-distribution decision.
@@ -43,7 +54,27 @@ destination map; it does not authorize work outside the active stage.
 - Nutrition, community, AI, clinical portal, or donor-code integration.
 - Production schema changes or new dependencies.
 
-## Stage 1A — Protocol Core
+## Stage 1A — ÆTERNA Foundation & Rebranding (Protocol Core)
+
+**Status: IN PROGRESS — the single active implementation stage.**
+`docs/UX_TRANSFORMATION_REVIEW.md` (adopted 2026-07-16, see
+`docs/DECISIONS.md`) is the canonical, granular execution plan for this
+stage — screen-by-screen classification and the UX-01–UX-18 slice sequence
+with its P0-P8 priority order. It supersedes
+`docs/SPARKY_TRANSFORMATION_PLAN.md`'s coarser module-level KEEP/REFINE/
+BUILD NEW/DELETE table (kept for historical reference). This entry reorders
+*slices inside* Stage 1A; it does not change the stage gates below.
+
+**UX-01–UX-15 are implemented, but their completion does not by itself
+satisfy this stage's exit gate below.** `docs/STAGE_1A_EXIT_GATE_REVIEW.md`
+verified the exit gate against the actual codebase and found Baseline,
+Eligibility assessment, and Protocol draft/review/activation are not yet
+implemented as canonical features (the current "tracked interventions" view
+of existing medication records is a real, tested compatibility shell, not
+governed Protocol Core), and Safety Event Workflow has no backend support.
+`docs/DECISIONS.md` (2026-07-16) records the owner's decision to complete
+that missing work — tracked as S1A-16 through S1A-26 — rather than close
+the gate against a narrower scope.
 
 ### Deliverables
 

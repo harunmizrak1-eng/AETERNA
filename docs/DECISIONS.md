@@ -1,5 +1,313 @@
 # ÆTERNA decision log
 
+## 2026-07-16 — Stage status reconciled to one active stage; Stage 1A exit gate held open; canonical Protocol Core completion work authorized
+
+Decision:
+`docs/ROADMAP.md` labeled both Stage 0 ("ACTIVE — validation incomplete")
+and Stage 1A ("IN PROGRESS") simultaneously, contradicting its own global
+gate rule ("only one product stage may be active at a time"). This is
+corrected: **Stage 1A is the single active implementation stage.** Stage 0's
+exit gate has still never been formally passed — that evidence gap is not
+resolved by this entry and is not silently dropped; it is carried forward
+as open release-blocking debt (see Consequences), exactly as the 2026-07-15
+"Stage 0 closed; move to Stage 1A" entry already, explicitly, and
+consciously chose to do. Nothing in this entry reopens Stage 0 as active
+work — it removes an inaccurate "ACTIVE" label from a stage nobody is
+currently doing anything on.
+
+Separately and more substantively, the owner has reviewed
+`docs/STAGE_1A_EXIT_GATE_REVIEW.md` (2026-07-16) and made the Stage 1A exit
+option decision that document's §10 left open:
+
+**Stage 1A is not complete merely because UX-01–UX-15 surfaces exist, and
+the current "read existing medication records as tracked interventions"
+compatibility shell is explicitly NOT accepted as sufficient for the Stage
+1A exit gate.** The missing canonical Protocol Core work — Baseline,
+Eligibility assessment, Protocol draft/review/activation with immutable
+versioning, canonical schedule linkage, server-side dose idempotency,
+inventory hardening, SafetyEvent as a first-class record, Stage 1A data
+export completeness, a real manual BiomarkerResult flow, and a completed
+Weekly Review — is now authorized as Stage 1A completion scope (tracked as
+S1A-16 through S1A-26 in this session's task list), to be implemented
+before Stage 1B Health Sync work begins. Stage 1B code-level work (S1B-01
+onward) may proceed immediately after Stage 1A's *code-testable* exit
+criteria pass; physical-device verification remains a separate, explicitly
+tracked release blocker and does not itself gate Stage 1B *development*.
+
+Why:
+Owner judgment, recorded directly in this session: the exit-gate review's
+finding that three of the exit gate's eight named legs (Baseline,
+Eligibility, Protocol activation) do not exist as implemented features, and
+a fourth (Safety Event Workflow) has no backend support at all, means the
+"tracked interventions" shell — while real, tested, and honestly labeled in
+the product itself — is not the governed Protocol Core the Stage 1A
+deliverables and exit gate actually describe. Closing the gate on the shell
+alone would misrepresent what Stage 1A promises. This is a deliberate
+choice to do more implementation work now rather than formally lower the
+bar for Stage 1A completion.
+
+Rejected:
+- Declaring Stage 1A complete on the strength of UX-01–UX-15 alone.
+- Formally closing the Stage 1A exit gate against a redefined, narrower
+  scope that excludes Baseline/Eligibility/Activation/SafetyEvent.
+- Leaving Stage 0 and Stage 1A both labeled "active" simultaneously.
+- Waiting for physical-device evidence before starting Stage 1B
+  *development* work (device evidence blocks *release*, not development).
+
+Consequences:
+- `docs/ROADMAP.md`'s Stage 0 entry is reworded to remove the "ACTIVE"
+  label and state plainly that its exit gate has not passed and its
+  evidence gap is carried-forward, unresolved release-blocking debt — its
+  deliverables/exit-gate/non-goals content is unchanged, only the status
+  line.
+- `docs/ROADMAP.md`'s Stage 1A entry keeps "IN PROGRESS" and gains a note
+  that UX-01–UX-15 completion does not by itself satisfy the exit gate;
+  see `docs/STAGE_1A_EXIT_GATE_REVIEW.md` for the maturity matrix.
+- This session's task list (S1A-16 through S1A-26, a UX-hardening pass, and
+  a re-verification pass) is the authorized Stage 1A completion scope.
+  Additive database migrations are explicitly authorized as part of this
+  scope, following `agent-docs/new-migration-checklist.md`'s existing safe
+  procedure (migration file → RLS policy update → server restart → backup
+  script → Zod schema → documentation) — this is a narrower, scoped
+  exception to the general "documentation/audit/prototype tasks must not
+  add migrations" rule in `AGENTS.md`, not a blanket lift of that rule.
+- No historical entry below is edited or removed. The 2026-07-15 "Stage 0
+  closed; move to Stage 1A" entry's own accepted evidence gap remains the
+  operative record of why Stage 0's gap was knowingly carried forward in
+  the first place; this entry only updates the current-status label to stop
+  contradicting it.
+
+## 2026-07-16 — Master Product Brief adopted as long-term reference; Product Alignment Gate resolved (4 of 10 questions)
+
+Decision:
+The owner-provided "ÆTERNA OS — Master Product Brief ve Yol Planı" is adopted
+as a long-term reference document (saved as `docs/MASTER_PRODUCT_BRIEF.md`)
+describing the eventual seven-engine product (Protocol, Nutrition, Training,
+Biomarker, Tracking, Knowledge/Body Atlas, AI, Community). Per the brief's
+own instruction, it does not by itself authorize implementation, does not
+retroactively rewrite UX-01–UX-10, and does not change `docs/ROADMAP.md`'s
+stage gates. It is planning input, the same status as
+`docs/UX_TRANSFORMATION_REVIEW.md` and `docs/COMPETITIVE_PARITY_BLUEPRINT.md`.
+
+The brief itself named a "Product Alignment Gate" of ~10 owner decisions
+required before UX-11 or broad new screens begin. Four were resolved
+directly with the owner this session; the rest remain open (see below).
+
+Resolved:
+1. **Library keeps its name** — no rename to "Explore." Internal
+   segmentation (Knowledge/Community/Atlas) may still be added later inside
+   the existing `Library` tab without a navigation-level rename.
+2. **Lifestyle Core (Nutrition/Training) is not pulled forward.** The
+   existing `docs/ROADMAP.md` stage order (1A → 1B → 2 → 3) is unchanged;
+   Nutrition and Training remain Stage 3 scope. The brief's "Faz B" does not
+   start early.
+3. **Continue with the brief's "Faz A" items that don't depend on any open
+   gate question**: Track Home, Global quick log, Logbook/Correction
+   history, Weekly review, Adherence, and Biomarkers detail/longitudinal
+   record. These extend already-adopted `docs/UX_TRANSFORMATION_REVIEW.md`
+   slices (UX-11 Biomarker detail, UX-13 Track/quick-log, UX-14 Logbook/
+   correction history, UX-15 Weekly review) rather than introducing new
+   scope, so they proceed without waiting on the remaining gate questions.
+4. **No canonical Protocol create/draft flow yet.** UX-06's read-only shell
+   scope is unchanged; manual protocol creation remains a later, separately
+   approved slice (matches the existing "canonical Protocol persistence does
+   not yet exist" limitation already recorded for UX-06).
+
+Still open (owner has not yet decided; do not assume an answer):
+- ÆON as the AI feature's working name (needs trademark/name check first).
+- Compound-content governance (who authors/reviews compound monographs,
+  how evidence tiers are assigned).
+- Safety/escalation copy approval ownership.
+- Community's launch scope and moderation model.
+- Whether self-directed-wellness and practitioner-guided modes split.
+- Whether Body Atlas starts 2D-only (brief recommends yes, not yet
+  confirmed as a formal decision).
+
+Why:
+Owner reviewed the brief's own "Product Alignment Gate" section directly
+and answered the four questions that were blocking or shaping immediate
+next work; the remaining questions only matter once their respective phases
+(AI naming, Community, Body Atlas, governance) actually start.
+
+Rejected:
+Treating the brief as an implementation order, rewriting UX-01–UX-10,
+renaming Library, or pulling Nutrition/Training Core earlier than Stage 3.
+
+Consequences:
+- `docs/MASTER_PRODUCT_BRIEF.md` is the canonical long-term reference for
+  the seven-engine vision (Protocol, Nutrition, Training, Biomarker,
+  Tracking, Knowledge/Body Atlas, AI, Community) and the Today/Track
+  layouts, visual-formula (Apple Health/Huawei Health/OneTwenty/editorial
+  blend), and state-language rules it describes — consult it when those
+  areas are eventually scoped for implementation.
+- The next implementation slices are the four Faz-A items named above,
+  continuing the existing UX-01–UX-10 codebase without any rename or
+  re-architecture.
+- Every remaining open gate question blocks only its own specific phase
+  (AI, Community, Body Atlas, governance) — it does not block Faz A.
+
+## 2026-07-16 — Adopt revised UX/IA plan; show all 5 tabs from the start; move Today's agenda-first redesign earlier
+
+Decision:
+The owner-provided revised UX/IA document is adopted as the canonical,
+granular execution plan and saved as `docs/UX_TRANSFORMATION_REVIEW.md`. It
+extends, rather than replaces, `docs/PRODUCT_SPECIFICATION_V1.md` (product
+principles, canonical navigation, information architecture) and supersedes
+`docs/SPARKY_TRANSFORMATION_PLAN.md`'s module-level KEEP/REFINE/BUILD
+NEW/DELETE table with a screen-by-screen classification and an 18-slice
+(UX-01–UX-18) implementation sequence.
+
+Two points where the revised document changes previously recorded behavior
+are resolved explicitly here, on the owner's confirmation:
+
+1. **Tab visibility.** `docs/PRODUCT_SPECIFICATION_V1.md` §4 previously read
+   "Do not expose empty primary tabs in production. A destination enters the
+   visible tab bar only when it provides a useful real-data flow." This is
+   superseded: all five primary destinations (Today, Protocol, Biomarkers,
+   Track, Library) are visible from the five-tab shell onward. A destination
+   with no working flow yet shows an honest, purposeful pre-release/empty
+   state (one of the approved state-language values) rather than being
+   hidden from the tab bar or showing fabricated content.
+2. **Today sequencing.** `docs/PRODUCT_SPECIFICATION_V1.md` §10 previously
+   scheduled Today's agenda-first transformation at v0.12, after Protocol,
+   Biomarkers, and Track were built. This is superseded: Today's agenda-first
+   redesign moves to priority P1, immediately after the five-tab shell and
+   alongside Protocol Core (UX-05, bundled with UX-06/UX-07 in
+   `docs/UX_TRANSFORMATION_REVIEW.md`), so Today is rebuilt once, in step
+   with Protocol Core landing, rather than twice.
+
+Why:
+Owner reviewed both options for each point and explicitly chose the revised
+document's approach over the previously recorded one. Rebuilding Today twice
+(once now, once at v0.12) is wasted work; building it alongside Protocol Core
+means each Today agenda row lands with real backing data instead of a second
+pass. Showing all five tabs immediately, gated by honest state language
+instead of visibility, keeps the destination map visible to the user
+throughout Stage 1A rather than surprising them with tabs appearing over
+many versions — as long as no tab ever shows fabricated content, this does
+not conflict with `docs/PRODUCT_SPECIFICATION_V1.md` §3.3 ("Real data only").
+
+Rejected:
+Keeping the original progressive tab-exposure rule (hide a tab until its
+flow is real-data-complete) and keeping Today's redesign scheduled last
+(v0.12) after Protocol/Biomarkers/Track.
+
+Consequences:
+- `docs/PRODUCT_SPECIFICATION_V1.md` §4 and §10 are amended to match (see
+  same-day edit).
+- Every tab shown before its domain is real must use the approved state
+  vocabulary (`docs/PRODUCT_SPECIFICATION_V1.md` §6) for its empty state —
+  "Not yet available" / "Not created" style copy, never sample data.
+- `docs/UX_TRANSFORMATION_REVIEW.md`'s UX-01–UX-18 slice sequence, priority
+  table (P0–P8), screen classification, and component inventory become the
+  operative execution plan for Stage 1A; `docs/ROADMAP.md`'s stage gates
+  remain authoritative and unchanged — this decision reorders *slices inside*
+  Stage 1A, it does not reopen or skip a stage gate.
+- The pre-existing v0.5 "Protocol shell completion and device review" step
+  (fixing the on-device `TabsLayout.tsx` native-tabs-context crash, commit
+  `74a79ed5`) still had to land first, since none of UX-05 onward can be
+  verified on a device that crashes opening Today/Protocol. That fix is
+  landed as of this entry; UX-05/UX-06 work follows the same day.
+
+## 2026-07-15 — Correction: reopen Stage 0; Stage 1A has not begun
+
+Decision:
+The earlier decision titled "Stage 0 closed; move to Stage 1A" is superseded.
+A filesystem and Git handoff audit proved that the expected SparkyFitness
+working copy at `AETERNA/aeterna-os` did not exist, no Sparky dependencies had
+been installed, and no Sparky build, automated-test baseline, or live health
+sync validation had occurred. The repository-correction pass created a clean,
+independent SparkyFitness clone, but cloning alone does not satisfy Stage 0.
+Stage 0 is active and Stage 1A implementation has not begun.
+
+Why:
+The uncommitted Rebranding/Today work was implemented against the old
+Expo/SQLite prototype, not the selected SparkyFitness foundation. Treating it
+as Stage 1A would continue the explicitly rejected application foundation and
+would hide the unmet build/test/health-sync gates.
+
+Rejected:
+Counting old-prototype UI changes as Stage 1A progress or treating a source
+clone as a validated foundation.
+
+Consequences:
+- The old-prototype implementation is preserved on archive branch
+  `archive/claude-prototype-stage1a-20260715` at commit `0a16ba0` and removed
+  from the active working tree.
+- `AETERNA/aeterna-os` is the only future implementation target.
+- No rebranding or feature implementation begins until a separate approval
+  covers dependency installation and lightweight foundation validation.
+- The superseded closure entry below remains unchanged as historical context.
+
+## 2026-07-15 — Stage 0 closed; move to Stage 1A
+
+Decision:
+Stage 0 is marked COMPLETE on the owner's explicit instruction. The project
+moves to Stage 1A — ÆTERNA Foundation & Rebranding (the existing
+`docs/ROADMAP.md` "Protocol Core" stage, reframed under this name).
+Documentation output stops after `docs/SPARKY_TRANSFORMATION_PLAN.md`;
+implementation becomes the priority.
+
+Why:
+Owner judgment: `docs/COMPETITIVE_PARITY_BLUEPRINT.md`, `docs/ROADMAP.md`,
+`docs/DATA_MODEL.md`, `AGENTS.md`, `docs/MODULE_ADOPTION_REPORT.md`,
+`docs/COMPETITIVE_UX_REPORT.md`, and `docs/SPARKYFITNESS_FEATURE_COVERAGE.md`
+are sufficient planning depth for Stage 0; further research has diminishing
+returns and further delays building.
+
+Evidence gap, recorded honestly:
+`docs/ROADMAP.md`'s Stage 0 exit gate also lists "supported iOS and Android
+builds are reproducible," "existing automated tests establish a usable
+baseline," and "health sync behavior and limitations are evidenced" as
+requirements. None of these three were independently produced — the health-
+sync and test-coverage claims in `docs/SPARKYFITNESS_FEATURE_COVERAGE.md`
+are static-code-reading findings, not a build/run/test execution. The owner
+is knowingly closing Stage 0 without them, accepting that risk consciously
+rather than blocking on it. This is not silently waived — it is carried
+forward explicitly below.
+
+Rejected:
+Continuing to gate Stage 1A start on independently producing iOS/Android
+build evidence, a run test baseline, and live health-sync validation before
+any implementation begins.
+
+Consequences:
+- iOS/Android build reproducibility, an automated-test baseline, and live
+  HealthKit/Health Connect validation remain open risks, now to be
+  discovered/resolved *during* Stage 1A implementation rather than before it,
+  since they require an actual build to verify. If a build/run/test attempt
+  during Stage 1A surfaces a blocking problem, that blocks further Stage 1A
+  work at that point — this decision defers the check, it does not remove it.
+- No further planning/audit documents are created unless a specific
+  implementation task requires one.
+
+## 2026-07-15 — KEEP / REFINE / BUILD NEW replaces Reuse/Refactor/Build New
+
+Decision:
+Existing-module classification uses three categories going forward: **KEEP**
+(use as-is, no rework), **REFINE** (exists, needs real rework for ÆTERNA),
+**BUILD NEW** (doesn't exist in SparkyFitness). A fourth action, **DELETE**,
+applies to existing SparkyFitness UI/screens that are fully superseded by a
+new ÆTERNA screen covering the same ground (e.g. its dashboard-ish screens
+once ÆTERNA's own Today is built) — distinct from BUILD NEW, which is for
+domains with no existing analog at all.
+
+Why:
+Owner judgment: this is more practical for planning actual work than the
+previous Reuse-as-is/Refactor/Build-New/N/A vocabulary used in
+`docs/MODULE_ADOPTION_REPORT.md` and `docs/SPARKYFITNESS_FEATURE_COVERAGE.md`.
+
+Rejected:
+Rewriting the existing Module Adoption Report or Feature Coverage report to
+the new vocabulary — they remain valid under their original terms (Reuse
+as-is ≈ KEEP, Refactor ≈ REFINE, Build New ≈ BUILD NEW) and are not
+retroactively edited, to avoid unnecessary doc churn now that documentation
+output is winding down.
+
+Consequences:
+`docs/SPARKY_TRANSFORMATION_PLAN.md` is the first and canonical user of this
+four-action vocabulary (KEEP/REFINE/BUILD NEW/DELETE).
+
 ## 2026-07-15 — SparkyFitness is the only application foundation
 
 Decision:
