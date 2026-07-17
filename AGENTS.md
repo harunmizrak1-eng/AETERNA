@@ -45,11 +45,49 @@ invent evidence, or silently change a protocol.
 - Prefer existing patterns and the smallest coherent change; do not create a new
   abstraction before checking the current architecture.
 - Record material scope or architecture decisions in `docs/DECISIONS.md`.
-- Never treat a competitor feature, design, private API, algorithm, content, or
-  source code as directly reusable without an explicit decision and rights.
+- Referans uygulamalardan (Pepty, PeptIQ, Protocol, Peppedia, Lifehackr,
+  Longevity Labs) ve veri kaynaklarından (Open Peptide Dataset CC BY 4.0,
+  peptidepedia.org, pepmod.com) owner'ın yazılı izni alınmıştır (see
+  `docs/DECISIONS.md`, 2026-07-17). Bu izinli kaynaklardan feature, design,
+  UX akışı, compound verisi ve içerik serbestçe kopyalanabilir ve adapte
+  edilebilir. Kapalı kaynaklı rakiplerin private API'leri, gizli
+  algoritmaları veya açıklanmamış içeriği yine de kullanılmaz.
+- "Evidence Before Protocol" kuralı korunur: izinli kaynaklardan kopyalanan
+  compound/içerik eğitim ve reference amaçlıdır, asla tıbbi tavsiye, teşhis
+  veya reçete olarak sunulmaz.
 
 ## Completion rule
 
 A task is incomplete while relevant build, typecheck, lint, tests, security,
 privacy, accessibility, mobile layout, or documentation checks fail. Report only
 changed files, work completed, test result, and known risk or gap.
+
+## Typecheck disiplini
+
+`tsc --noEmit` tüm Sparky monoreposunu tarar (~30 dk her koşumda). Zaman
+israfını önlemek için:
+
+- **Daima `--incremental` kullan.** `.tsbuildinfo` cache'ler; 2. koşumda
+  saniyeler sürer. `tsc --noEmit --incremental`.
+- **Her dosya değişikliğinde typecheck koşturma.** Küçük düzenlemede IDE/
+  limitli check yeterli. Bir paket içinde ardışık 3-5 değişiklikte bir kez.
+- **Watch mode tercih et:** `tsc --noEmit --incremental --watch` bir
+  background shell'de çalışsın; her save'de anlık raporlar, ayrı koşum yok.
+- **Commit öncesi:** sadece değişen paketin typecheck'i (mobile ise
+  SparkyFitnessMobile, server ise SparkyFitnessServer), tüm monorepo değil.
+- **Tam typecheck** yalnızca cross-paket değişiklikte (shared + iki paket)
+  veya merge öncesi.
+- Bu kural AGENTS.md root'unun "Definition of done" kuralını değiştirmez:
+  commit/merge'den önce ilgili tip kontrolü hâlâ yeşil olmalı, sadece
+  her dosya kaydetmede 30 dk beklenmez.
+
+## Lint disiplini
+
+- `expo lint` tüm projeyi tarar (yavaş, kesilebilir). Commit öncesi sadece
+  değişen dosyaları lint'le: `pnpm exec eslint <file1> <file2>`.
+- `--cache` kullan: `eslint src --cache --cache-location .eslintcache`.
+- `--max-warnings 0`'ı commit öncesi uygula; development sırasında
+  uyarılara izin ver, son temizle.
+- Çalışırken kesilme olursa: tek dosya `eslint <file>` ile doğrula, tüm
+  `expo lint`'i commit öncesi tek sefer koş.
+- Server tarafı aynı prensip: `pnpm exec eslint <touched-files>`.

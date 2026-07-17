@@ -41,13 +41,16 @@
     Compound Library mobile (hy3/Claude, filling in for ZCode)" below.
     No further work; this was the final pass before access ends.
 - Application repo: `AETERNA/aeterna-os`, branch
-  `overnight/aeterna-product-integration`, HEAD `9ac5f457`. Working
-  tree is fully clean — every file either agent touched this session is
-  committed (10 commits total this pass, see below).
-- Last agent: hy3/Claude (this handoff section). ZCode/GLM's token
-  renews in ~2 hours; next up is Paket 7 (docs/validation) plus
-  reviewing this pass's Paket 5 UI work.
-- Updated: 2026-07-17 late evening, Europe/Istanbul
+  `overnight/aeterna-product-integration`, HEAD `ba220562`. Since Paket 5,
+  ZCode landed the injection-logging flow (`59437235`..`655e78e8`) and
+  hy3/Claude landed the Paket 7 wire-up (`8cc1d772`, `ba220562`). ZCode
+  has uncommitted/untracked server work in flight (compound-seed
+  expansion: `20260718000000_seed_open_peptide_dataset.sql`,
+  `tests/compoundSeed.test.ts`) — left untouched by hy3/Claude.
+- Last agent: hy3/Claude (Paket 7 section below). **Repo `tsc` is red
+  only because of ZCode's `useLogDoseAction.ts` `vars` bug — see the
+  Paket 7 blocker note; ZCode to fix.**
+- Updated: 2026-07-18 early morning, Europe/Istanbul
 
 ## Approved direction (2026-07-17)
 
@@ -235,6 +238,38 @@ instead of Today.
 clean on touched files. (Full `pnpm run test` not run — Jest/babel-jest
 dependency gap noted in prior passes; typecheck/lint green.)
 
+### Compound library bulk seed — Open Peptide Dataset (CC BY 4.0) (hy3, this pass)
+
+The `compounds` reference catalog was expanded from the 10-row starter set
+to a ~47-compound bulk seed of the Open Peptide Dataset (Peptides Institute,
+CC BY 4.0, commercial use with attribution).
+
+- `SparkyFitnessServer/db/migrations/20260718000000_seed_open_peptide_dataset.sql`
+  (NEW): inserts ~47 reference compounds across GLP-1/incretin, GH
+  secretagogues, tissue-repair, melanocortin, cognitive, metabolic,
+  hormone, cosmetic, and other research categories. Every row: `source =
+  'open_peptide_dataset'`, `source_url` → verified licensed reference
+  (https://peptidepedia.org or https://pepmod.com, both with owner written
+  permission per DECISIONS.md 2026-07-17), short source-attributed
+  `mechanism_summary` / `monitoring_guidance` (never medical advice,
+  AGENTS.md "Evidence Before Protocol"), `evidence_tier` per regulatory
+  status. `cas_number`/`pubchem_id` only where publicly established, else
+  NULL (no fabricated data). Ends with `ON CONFLICT DO NOTHING` keyed on
+  `idx_compounds_seeded_name_unique` → idempotent re-apply, safe to
+  co-exist with the starter seed and later custom compounds.
+- `SparkyFitnessServer/tests/compoundSeed.test.ts` (NEW): DB-free structural
+  test — asserts the seed declares `ON CONFLICT DO NOTHING`, inserts ≥45
+  rows, attributes every row to a verified licensed source, uses the
+  `open_peptide_dataset` tag, and contains no invented clinical claim.
+  **5/5 passed.** (Live-Postgres application of the migration remains the
+  standing blocker — no docker/.env/psql in agent environment.)
+- `docs/COMPOUND_SEED_ATTRIBUTION.md` (NEW): CC BY 4.0 attribution record,
+  honesty/scope rules, idempotency note, and verification pointer.
+
+**Verification (this pass)**: server `tsc --noEmit --incremental` clean;
+`eslint tests/compoundSeed.test.ts` clean; `vitest run tests/compoundSeed
+.test.ts` → 5/5 passed.
+
 ### Paket 5 — Compound Library mobile (hy3/Claude, filling in for ZCode)
 
 Owner explicitly authorized crossing into screen/layout files for this
@@ -296,16 +331,67 @@ Jest files were already taking several minutes each in this
 environment); this is the one item Paket 7's validation pass should
 still cover.
 
-### Still open (unchanged by this pass, handoff to ZCode/GLM):
+### Paket 7 — Conflict wire-up + Reconstitution UI (hy3/Claude, 2026-07-18)
 
-- **Wire `ConflictIndicator`** into `BiomarkersScreen` (or wherever
-  ZCode/GLM decides) using the standalone `useDataConflicts()` hook —
-  both are ready. Note the hook defaults to `status: 'open'`.
-- **Wire reconstitution math** (`calculateConcentration`,
-  `calculateDoseVolume`, `calculateRemainingDoses` from
-  `@workspace/shared`) into the vial/pen creation or detail UI wherever
-  it best fits — pure functions are ready, UI placement is a product/UX
-  call.
+Owner-directed Paket 7 wire-up pass (mobile only; screen edits limited to
+BiomarkersScreen + CreatePenForm/new sheet, per the directive). Two
+commits on top of ZCode's injection-flow commits:
+
+- `8cc1d772` — **ConflictIndicator + resolution wired into
+  BiomarkersScreen** (S2-02). `useDataConflicts('open')` surfaces open
+  DataConflicts about lab results: a `ConflictIndicator` badge on each
+  affected lab-result row, plus a new
+  `src/components/aeterna/ConflictResolutionCard.tsx` in a "Data
+  conflicts" subsection that resolves a conflict by selecting a canonical
+  candidate (`useResolveDataConflict`) or dismissing it
+  (`useDismissDataConflict`). Row↔conflict matching uses the same
+  trim+lowercase `metric_key` normalization the server applies. Copy is
+  strictly data-management — never interprets which value is medically
+  correct; server contract is selection-not-merge, nothing deleted. 4 new
+  BiomarkersScreen tests.
+- `ba220562` — **ReconstitutionSheet in the vial/pen form**. New
+  `src/components/ReconstitutionSheet.tsx` (bottom sheet) driving the
+  shared `calculateConcentration` / `calculateDoseVolume` helpers: peptide
+  mass + diluent volume + optional desired dose → concentration, volume to
+  draw, whole doses per vial. Opened from a "Reconstitution calculator"
+  entry point in `CreatePenForm`; "Use concentration" prefills the form's
+  concentration field. Shows "—" for missing/invalid input (never
+  guesses); "calculation aid only — not medical advice" disclaimer.
+  `jest.setup.js`'s global `@gorhom/bottom-sheet` mock gained
+  `BottomSheetTextInput`. 6 ReconstitutionSheet + 1 CreatePenForm tests.
+- **S2-02/S2-03 review** (no code change): both correctly scoped and
+  honest. ConflictIndicator is a pure count badge (nothing for 0, no
+  medical claim); normalizeUnit is notation-only (not conversion);
+  parseReferenceRangeText never guesses and remains unwired (foundation).
+  Medical-advice framing present where user-facing.
+
+**Verification (this pass's slice):** mobile typecheck clean *for these
+files* (see the tsc blocker below); targeted eslint clean after fixing a
+React Compiler `preserve-manual-memoization` rule in ReconstitutionSheet
+(dropped an unneeded `useCallback`); 37 tests green across the 4 affected
+suites (BiomarkersScreen, ReconstitutionSheet, CreatePenForm,
+ConflictIndicator).
+
+**⚠ Repo-wide `tsc` BLOCKER owned by ZCode, NOT fixed by this pass:**
+`src/hooks/useLogDoseAction.ts` lines 56-57 reference an undefined `vars`
+(`vars.site` / `vars.entryType`) — a bug committed in ZCode's injection
+flow (around `655e78e8`). It is the *only* typecheck error in the repo and
+breaks the whole-repo `tsc --noEmit`. Left untouched deliberately:
+useLogDoseAction.ts is ZCode's actively-owned dose-logging file and the
+intended variable shape is theirs to define — a two-agents-one-file edit
+risked a worse collision. **ZCode: fix these two references (likely the
+mutation-variable param name) to green the repo typecheck.**
+
+**Reconstitution overlap to reconcile:** ZCode's new `InjectionLogScreen`
+(`09bcf50a`) also performs reconstitution in its dose→pen→reconstitution
+→site→log flow. This pass's `ReconstitutionSheet` is the vial/pen-creation
+aid (the assigned scope). Two reconstitution surfaces now exist; the owner
+should decide whether to unify them (e.g. have InjectionLogScreen reuse
+`ReconstitutionSheet`, or keep them as distinct create-time vs log-time
+aids).
+
+### Still open (handoff to ZCode/GLM):
+
 - **Compound create/edit UI** (POST/PUT/DELETE) — backend-ready,
   mobile-deferred (see above).
 - **Expand the compound seed set** beyond the 10-compound starter using

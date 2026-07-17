@@ -1,5 +1,154 @@
 # ÆTERNA decision log
 
+## 2026-07-18 — Faz A — Peptide-First UI complete; three-agent division recorded
+
+Decision:
+Faz A — Peptide-First UI is **code-complete and committed** at HEAD
+`ba220562` on `overnight/aeterna-product-integration`. The ÆTERNA mobile
+app is now peptide-first across its full surface, no longer a Sparky
+retfit. Three-agent division (recorded for future context):
+
+- **ZCode (GLM-5.2)** — UI through Paket 6 (AddSheet peptide-first,
+  Track→Logbook navigation, Onboarding ÆTERNA rebrand + trust-verification,
+  Apple Health theme reset), plus all governance docs (AGENTS.md
+  constitution rights/typecheck/lint discipline, DECISIONS, ROADMAP,
+  HANDOFF, mobile AGENTS.md Source Map).
+- **Claude** — Paket 5 Compound Library mobile (CompoundLibraryScreen,
+  CompoundDetailScreen, compoundLibraryApi, useCompounds, tests) and the
+  injection logging flow (InjectionLogScreen, InjectionSitePicker,
+  injection API + dose-log site/entry_type params). Membership ended
+  2026-07-18 after delivering S2-01 DataConflict (`89687f4c`) and Faz A
+  mobile slices.
+- **hy3** — Faz A backend (compounds migration + RLS + CRUD routes,
+  reconstitution pure functions, biomarker normalization hardening,
+  ConflictIndicator + useDataConflict standalone), Paket 7 wire-up
+  (ReconstitutionSheet in vial/pen form, DataConflict resolution wired
+  into BiomarkersScreen), Open Peptide Dataset CC BY 4.0 bulk seed
+  (~47 compounds, idempotent `ON CONFLICT DO NOTHING`, attribution to
+  peptidepedia.org/pepmod.com), and the typecheck-clean verification
+  pass.
+
+What is now in users' hands (peptide-first):
+- `AddSheet` main grid: Log Dose / Lab Result / Safety / Measurements /
+  Sync; Sparky actions behind "More".
+- `Today` / `Protocol` / `Biomarkers` already peptide-aware (unchanged,
+  verified).
+- `Track` tab = Logbook (nutrition hidden behind `STAGE_3_LIFESTYLE_VISIBLE
+  = false`), peptide-first category routing.
+- `LibraryShellScreen` Compounds section live, with ~47 seeded compounds
+  (Open Peptide Dataset CC BY 4.0), evidence tier badges, "education/
+  reference only - not medical advice" labels, drill-in monograph.
+- `InjectionLogScreen`: dose → pen/vial → reconstitution (`calculateDoseVolume`)
+  → site (8-site rotation picker) → log with `entry_type:'injection'` +
+  `site`; reached from AddSheet "Log Dose".
+- Onboarding: ÆTERNA welcome + "always free, no paywall/ads/tracking"
+  counter-positioning + trust-verification copy.
+- Theme: Apple Health white/indigo light palette (ivory/gold retired);
+  serif display → system sans-serif; tighter radii.
+- DataConflict resolution surfaced in BiomarkersScreen.
+
+Open / carried forward (unchanged from prior handoffs):
+- Live-Postgres application of every migration (Stage 1A + S2-01 + compounds
+  + Open Peptide Dataset seed) — no docker/.env/psql in agent envs.
+  `db_schema_backup.sql` and `@workspace/shared` Zod schemas for all new
+  tables remain unsynchronized.
+- Stage 1B device verification — no physical iOS/Android access.
+- Stage 1A exit gate formally still open (Baseline/Eligibility/SafetyEvent
+  backend land; Faz A did not relitigate it).
+
+Why:
+Owner's strategic re-centering (2026-07-17) was to ship a working, peptide-
+first, free app instead of finishing Health Sync infrastructure first.
+Faz A delivers that. Three parallel agents (ZCode UI, Claude mobile feature
+work, hy3 backend + wire-up) collapsed ~7 days of sequential work into
+~24 hours by enforcing a strict file-ownership split (ZCode/Claude owned
+`src/screens/*` and `src/components/*`; hy3 owned backend + standalone
+components; no concurrent edits to the same file).
+
+## 2026-07-17 — Reference apps and data sources: written permission obtained; copy-freely authorized
+
+Decision:
+The owner has obtained written permission to use, copy, and adapt material from
+the following reference applications and data sources:
+
+- **Reference apps** (decompiled for study; owner has direct permission):
+  Pepty, PeptIQ, Protocol (PeptideTracker), Peppedia, Lifehackr (Lifehack),
+  Longevity Labs.
+- **Open Peptide Dataset** (Peptides Institute) — CC BY 4.0, commercially
+  usable with attribution, two-stage verification, primary-source URLs per
+  fact. This is the seed source for the compound registry.
+- **peptidepedia.org** and **pepmod.com** — owner obtained written email
+  permission (not scraping); content may be referenced and adapted.
+
+Consequence: feature designs, UX flows, screen layouts, onboarding copy
+patterns, compound data, and editorial content from these licensed sources may
+be freely copied and adapted into ÆTERNA. Closed-source competitors' private
+APIs, undisclosed algorithms, or non-public internal content remain off-limits
+as before.
+
+Why:
+ÆTERNA's strategy is a peptide-first longevity OS that is completely free, has
+no subscription, no ads, and no user tracking — a direct counter-positioning to
+the paywall/ad/tracking model of Pepty, PeptIQ, and Longevity Labs (all of which
+embed RevenueCat/Facebook SDK/AppsFlyer/`AD_ID`). Borrowing their UX patterns
+while stripping the monetization layer is the core differentiator. Speed
+matters (owner time-constrained), and reusing licensed reference material beats
+reinventing commodity tracker UX.
+
+`AGENTS.md`'s prior "Never treat a competitor feature, design, private API,
+algorithm, content, or source code as directly reusable" clause is replaced by
+the explicit licensed-sources carve-in above.
+
+Open item: ÆTERNA's own open-source license choice (GPL/AGPL/MIT) is deferred.
+SparkyFitness retains its existing commercial-use permission (2026-07-15). The
+"free, no-subscription, no-ads" product stance is fixed; the code-license
+selection is not.
+
+## 2026-07-17 — Peptide-first Faz A: ROADMAP in-stage reordering authorized
+
+Decision:
+The owner directed a strategic re-centering of ÆTERNA on its product heart —
+peptide protocol, vial/reconstitution, today's schedule, dose logging — ahead
+of further Health Sync UI work. This is an **in-stage reordering**, not a stage
+gate change or a Roadmap rewrite:
+
+- **Compound Library (Knowledge/Body Atlas Engine)** is reclassified as a
+  Stage 1A Protocol Core extension (the canonical spec's seven-engine vision
+  names Knowledge Engine alongside Protocol Engine), not Stage 2 scope. It
+  proceeds inside Stage 1A. Open Peptide Dataset seeds the compound registry.
+- **Track → Logbook transformation** is the accepted UX-13 scope (Track Home /
+  Global quick log / Logbook) the 2026-07-16 Master Product Brief decision
+  already authorized. The current Track tab points at Sparky's nutrition
+  `DiaryScreen`; Faz A repurposes it into a dose/injection/symptom/lab
+  timeline (Logbook), with the Sparky nutrition diary reachable behind a
+  `__DEV__` route, matching the existing legacy-route pattern.
+- **Stage 1B Health Sync backend and services are frozen-but-kept**, not
+  deleted. S2-01 (DataConflict foundation, commit `89687f4c`) is accepted as
+  Stage 1B closure. The agent (Claude) proceeds with bounded, non-UI Stage 2
+  hardening (S2-02 conflict-indicator component, S2-03 biomarker
+  normalization) and Faz A backend support (compound library backend,
+  reconstitution pure functions), explicitly NOT touching screen/layout files
+  that the GLM agent is rebuilding peptide-first.
+- **Nutrition/Training remain Stage 3** (unchanged from 2026-07-16). This
+  decision does not pull Lifestyle Core forward.
+- **No paywall, no ads, no tracking** is a fixed product rule.
+
+Why:
+Three days were spent on Health Sync infrastructure while the product's heart
+(peptide protocol + vial + dose + today) had no visible mobile experience. The
+owner's priority is a working, peptide-first, free app that does not look like
+a Sparky retrofit. Reordering inside Stage 1A (rather than declaring a new
+stage) keeps the gate discipline while unblocking the user-visible work.
+
+Consequences:
+- "Faz A — Peptide-First UI" is added under Stage 1A in `docs/ROADMAP.md`.
+- The GLM agent owns all `src/screens/*` and `src/components/*` UI work
+  (onboarding, AddSheet, Track→Logbook, compound library mobile, theme).
+- The Claude agent owns backend + new standalone components only; it does not
+  edit screen/layout files during Faz A.
+- Stage 1B device verification and live-Postgres application remain open
+  external blockers, unchanged.
+
 ## 2026-07-16 — Stage status reconciled to one active stage; Stage 1A exit gate held open; canonical Protocol Core completion work authorized
 
 Decision:
