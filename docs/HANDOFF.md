@@ -2,184 +2,607 @@
 
 ## State
 
-- Status: `IN PROGRESS` — owner has made the Stage 1A exit-gate decision
-  (`docs/DECISIONS.md` 2026-07-16): keep Stage 1A open and implement
-  canonical Protocol Core completion work (S1A-16 through S1A-26) before
-  Stage 1B. This session is mid-execution; this HANDOFF.md section will be
-  rewritten with final state when this pass ends.
-- Active stage: **Stage 1A — ÆTERNA Foundation & Rebranding (Protocol Core)**, `IN PROGRESS`; exit gate reviewed and **not yet formally passed** — see `docs/STAGE_1A_EXIT_GATE_REVIEW.md`
-- Application repo: `AETERNA/aeterna-os`, branch `overnight/aeterna-product-integration`, HEAD `15b03c36` (verified 2026-07-16; superseded by further commits in this session — see the in-progress Stage 1A completion work below)
-- Last agent: Claude
-- Updated: 2026-07-16, Europe/Istanbul
+- Status: **Faz A — Peptide-First UI** started 2026-07-17 (see
+  `docs/DECISIONS.md`, `docs/ROADMAP.md` "Faz A" section). Strategic
+  re-centering on the product heart: peptide protocol, vial, today,
+  dose logging, compound library. Health Sync UI deprioritized; backend
+  kept.
+- Active stage: **Stage 1A** remains the single active stage; Faz A is an
+  in-stage reordering inside it (not a new stage, not a gate change).
+  Stage 1B is code-complete (S1B-01..07 + S2-01 DataConflict foundation
+  `89687f4c`); device verification and live-Postgres application remain
+  open external blockers.
+- **Agent division (Faz A) — UPDATED 2026-07-17 evening:**
+  - **ZCode (GLM-5.2)** — owned UI through Paket 6; now **completes Paket 7
+    (docs/validation) then transitions to AUDIT/QA role**: runs
+    typecheck/lint/test across the repo, reviews hy3/Claude output for
+    honesty/scope/quality, keeps HANDOFF/ROADMAP/DECISIONS consistent.
+    No new feature ownership after Faz A UI wraps.
+  - **hy3 (strong model)** — **newly added** as backend partner. Picks up
+    Faz A backend + Stage 2 bounded work: compound library backend
+    (`compounds` migration + RLS + Open Peptide Dataset seed +
+    `routes/v2/compoundLibraryRoutes.ts` + repo + tests), reconstitution
+    pure functions, S2-02 conflict-indicator standalone component
+    (`src/components/aeterna/ConflictIndicator.tsx`, NOT wired into
+    BiomarkersScreen), S2-03 biomarker normalization. hy3 must NOT edit
+    screen/layout files (`src/screens/*.tsx`, `App.tsx`, `TabsLayout.tsx`,
+    `AddSheet.tsx`, `OnboardingScreen.tsx`) — ZCode owns those.
+  - **Claude ("hy3" in this handoff's own text — same agent, see note
+    below)** — membership ends 2026-07-18. Completed S2-01 DataConflict
+    (`89687f4c`), the three honesty closures (C1/C2/C3), the full
+    Faz A backend slice (compound library backend, reconstitution pure
+    functions), the Stage 2 bounded pair (S2-02 conflict-indicator
+    component, S2-03 biomarker ingestion hardening) — see "hy3/Claude
+    backend pass — completed" below. **Then, with ZCode's token
+    exhausted and explicit owner authorization to cross into
+    screen/layout files temporarily, also committed ZCode's own
+    already-authored but uncommitted Paket 2/3/4/6 UI work and built
+    Paket 5 (Compound Library mobile) end-to-end** — see "Paket 5 —
+    Compound Library mobile (hy3/Claude, filling in for ZCode)" below.
+    No further work; this was the final pass before access ends.
+- Application repo: `AETERNA/aeterna-os`, branch
+  `overnight/aeterna-product-integration`, HEAD `9ac5f457`. Working
+  tree is fully clean — every file either agent touched this session is
+  committed (10 commits total this pass, see below).
+- Last agent: hy3/Claude (this handoff section). ZCode/GLM's token
+  renews in ~2 hours; next up is Paket 7 (docs/validation) plus
+  reviewing this pass's Paket 5 UI work.
+- Updated: 2026-07-17 late evening, Europe/Istanbul
+
+## Approved direction (2026-07-17)
+
+- Same Expo project (`SparkyFitnessMobile`) — no second app foundation.
+  New `aeterna-v2` UI layer over the existing Sparky backend (auth, RLS,
+  protocol, medication/pens, biomarker, safety, sync, export all kept).
+  Sparky screens reachable behind `__DEV__` routes, per the existing
+  legacy pattern in `SparkyFitnessMobile/AGENTS.md`.
+- Track tab repurposed to Logbook (dose/injection/symptom/lab timeline);
+  Sparky nutrition diary behind `__DEV__`.
+- Reference apps (Pepty, PeptIQ, Protocol, Peppedia, Lifehackr, Longevity
+  Labs) and data sources (Open Peptide Dataset CC BY 4.0, peptidepedia.org,
+  pepmod.com) carry written owner permission — UX/data may be freely copied
+  and adapted (see `docs/DECISIONS.md`, 2026-07-17 rights entry; the
+  `AGENTS.md` competitor-reuse clause was replaced by an explicit
+  licensed-sources carve-in).
+- Fixed product rules: completely free, no subscription, no ads, no user
+  tracking. Open-source license choice deferred.
+
+## Next tasks
+
+- GLM/ZCode (when token renews): **Paket 7 — Docs + validation.**
+  Paket 2/3/4/5/6 are all now done and committed (see below) — review
+  hy3/Claude's Paket 5 UI work (`CompoundLibraryScreen.tsx`,
+  `CompoundDetailScreen.tsx`, `LibraryShellScreen.tsx`'s Compounds row)
+  for visual/UX fit against the Apple Health theme reset, then run full
+  `pnpm run validate` + `test:run` (mobile) and finish AGENTS.md/
+  DECISIONS.md/ROADMAP.md/HANDOFF.md consistency pass.
+- Claude: done — see "Paket 5 — Compound Library mobile" below. No
+  further work this session.
+
+## Faz A progress (ZCode/GLM pass — 2026-07-17 evening)
+
+### Done this pass (mobile UI, all typecheck-clean, all now COMMITTED):
+
+- **Paket 2 — AddSheet peptide-first** — commit `85b84cb6`
+  (`src/components/AddSheet.tsx`, `src/components/Icon.tsx`,
+  `__tests__/components/AddSheet.test.tsx`; App.tsx's handler half is in
+  `9ac5f457` alongside Paket 5, see note there): main grid now Log Dose
+  / Lab Result / Safety / Measurements; legacy Sparky actions (Food /
+  Exercise / Scan Food / Ask Sparky) behind a "More" submenu. New
+  `syringe` icon. 3 new handlers in App.tsx route to Today / Biomarkers
+  / Track. Tests updated + 3 new tests.
+- **Paket 3 — Track → Logbook** — commit `38fc2b5a`
+  (`src/screens/DiaryScreen.tsx`): Dose/Medication pinned+grid
+  categories now route to Today (dose-log center) instead of Protocol;
+  use `syringe` icon. Track tab was already peptide-first
+  (`STAGE_3_LIFESTYLE_VISIBLE = false`, nutrition hidden); only
+  navigation targets corrected.
+- **Paket 4 — Onboarding ÆTERNA** — commit `08c1a4e1`
+  (`src/screens/OnboardingScreen.tsx` +
+  `__tests__/screens/OnboardingScreen.test.tsx`): welcome rebranded
+  SparkyFitness→ÆTERNA, "self-hosted fitness tracker"→"Your longevity
+  operating system", one-line value prop + "Free, forever — no
+  subscription, no ads, no tracking". Trust-verification copy added to
+  "Learn more": research/educational only, consult a clinician. Server
+  URL label + placeholder + error message rebranded. Page 2 header
+  "Connect to SparkyFitness"→"Connect to your ÆTERNA server". Auth
+  mechanics (authService, MfaForm, saveServerConfig) untouched.
+- **Paket 6 — Theme reset** — commit `ab7a785b`
+  (`global.css`, `src/theme/aeternaTokens.ts`): light palette
+  ivory/gold → Apple Health style white/indigo (cooler, more saturated
+  blue accent); serif display → system sans-serif; tighter radii
+  (10/16/22 → 8/12/16); shadow opacity 0.05→0.08. Visual direction now
+  matches "~55% Apple Health clarity" target.
+- **Paket 7 — Docs**: this HANDOFF.md update is part of it; AGENTS.md/
+  DECISIONS.md/ROADMAP.md consistency pass and full `pnpm run
+  validate`/`test:run` still need ZCode's review pass (see "Next
+  tasks").
+
+These four commits were ZCode/GLM's own already-finished work, left
+uncommitted in the working tree when GLM's token ran out mid-session.
+hy3/Claude found them still dirty, verified they were typecheck/lint
+clean (they were — no changes made to their content), and committed
+each as its own commit under the same Paket description ZCode's own
+handoff text above already used, so authorship/scope stays traceable
+to ZCode's actual work rather than being folded into hy3/Claude's own
+commits.
+
+### hy3/Claude backend pass — COMPLETED 2026-07-17 late evening
+
+Everything ZCode observed as "untracked/modified, not yet reviewed" in
+the paragraph below is now committed cleanly, typecheck/lint/test-green,
+each as its own commit on `overnight/aeterna-product-integration`:
+
+- `dacb4053` — **C2**: `useSyncHealthData.ts` foreground sync now also
+  calls `saveLastSyncOutcome` (was only advancing `lastSyncedTime`),
+  matching `backgroundSyncService.ts`'s own pattern.
+- `3f6ab97e` — **C3**: `CreatePenForm.tsx` now shows a visible error
+  ("Doses must be a whole number 0 or greater") instead of silently
+  dropping an invalid total-doses entry to `null`.
+- **C1** (no commit — a decision, not a code change): confirmed
+  `docs/STAGE_1B_DEVICE_VERIFICATION.md` is already correctly placed in
+  the OUTER `AETERNA/docs/` (this repo's own `aeterna-os/AGENTS.md`
+  states `docs/` there is the Nuxt/Docus docs site, and every other
+  ÆTERNA planning doc already lives outer-repo) — no `git mv` needed.
+- `40f7c751` — **B1, compound library backend**: new `compounds` table
+  (migration `20260717160000_add_compound_library_schema.sql`) with a
+  nullable `user_id` — NULL rows are seeded/system reference compounds,
+  readable by every authenticated user and immutable through the API;
+  non-NULL rows are user-authored custom compounds, owner-read/write
+  only. RLS is a bespoke policy (NOT `create_medication_policy`, which
+  has no NULL-owner branch) mirroring `meal_types`' own
+  system-row/owner-row split, scoped to the `has_medication_*` functions.
+  Full CRUD at `/api/v2/compounds` (`compoundLibraryRoutes.ts` +
+  `compoundLibraryRepository.ts` + `compoundLibrarySchemas.ts`), a
+  **10-compound Open Peptide Dataset (CC BY 4.0) starter seed** (BPC-157,
+  TB-500, Tesamorelin, Ipamorelin, CJC-1295, Semaglutide, Tirzepatide,
+  MOTS-c, Epitalon, GHK-Cu — real `source_url`s, `evidence_tier`
+  per-compound), export coverage in `stage1aExportRepository.ts`, RLS-
+  matrix classification (`custom` domain, matching `meal_types`'
+  precedent), 13 route tests. **No `shared/src/schemas/database/
+  Compounds.zod.ts`** — matches the existing, pre-existing gap that
+  `biomarker_results`/`data_conflicts` also lack one (a real, documented
+  inconsistency in this codebase, not new).
+- `ac38c849` — **B2, reconstitution pure functions**:
+  `shared/src/utils/reconstitution.ts` — `calculateConcentration`,
+  `calculateDoseVolume`, `calculateRemainingDoses`. Pure, mg/mL and mL
+  math matching `medication_pens`' own columns; null-over-garbage-value
+  on invalid input, same convention `CreatePenForm.tsx` already uses.
+  **Not wired into any screen** — ZCode/GLM decides where reconstitution
+  math should surface in the vial/pen UI.
+- `2d7779cd` — **A1 / S2-02, conflict-indicator component**:
+  `src/components/aeterna/ConflictIndicator.tsx` (+ `useDataConflict.ts`
+  hook + `dataConflictsApi.ts` client + `types/dataConflicts.ts`).
+  Compact "N conflicts" badge for a metric's open DataConflicts, renders
+  nothing for 0. **Deliberately standalone — NOT imported into
+  BiomarkersScreen or any screen.** ZCode/GLM decides placement and what
+  `onPress` opens.
+- `02d0d8bb` — **A2 / S2-03, biomarker ingestion hardening**: two
+  additive, non-clinical pieces on top of S2-01's existing detection —
+  (a) `dataConflictDetection.ts`'s `normalizeUnit()` now also collapses
+  notation-only unit variants (µg/mcg/ug, whitespace around `/`) so
+  identical units written differently stop spuriously triggering
+  `unit_mismatch` — genuine cross-system differences (mg/dL vs mmol/L)
+  still correctly flag; (b) new `biomarkerNormalization.ts`'s
+  `parseReferenceRangeText()`, a pure parser for printed reference
+  ranges ("70-100", "<40", ">=3.5", "70 to 100") — never guesses, not
+  yet wired into any route (a foundation for a future auto-fill-on-entry
+  enhancement).
+
+**Verification**: server `pnpm run typecheck`/`pnpm exec eslint` clean;
+61 server tests green across the touched/new suites (`vitest`). Mobile
+`pnpm run typecheck` clean, `pnpm run lint` (`--max-warnings 0`) clean,
+`ConflictIndicator.test.tsx` (7 tests) and `reconstitution.test.ts` (14
+tests) green. **No live-Postgres verification of the new `compounds`
+migration or RLS policy** — same standing blocker as every prior pass
+(no docker/.env/psql in this environment); code-reviewed correct against
+the exact `meal_types` precedent, not DB-executed.
+
+### Injection logging flow (hy3 — NEW, this pass)
+
+The "Log injection" action previously stubbed by Claude/ZCode now works
+end-to-end. AddSheet's "Log Dose" CTA routes to a new `InjectionLogScreen`
+instead of Today.
+
+- `src/screens/InjectionLogScreen.tsx` (NEW): pick a scheduled dose
+  (from `useProtocolShell(activeDate).scheduledToday`), pick a pen/vial
+  (`useMedicationPens`), shows the drawn volume from
+  `calculateDoseVolume(doseMg, pen.concentration_mg_ml)` (shared
+  reconstitution math), pick a body site (`InjectionSitePicker`), then
+  logs via `createInjection({ medication_id, pen_id, site, dose_mg,
+  deduct_pen: true })`.
+- `src/components/aeterna/InjectionSitePicker.tsx` (NEW): 8 rotation
+  sites — abdomen L/R, thigh L/R, deltoid L/R, glute L/R — with a
+  rotation hint. Pure UI, no navigation of its own.
+- `src/services/api/medicationsApi.ts`: new `CreateInjectionInput` +
+  `createInjection()` → `POST /api/v2/medications/injections`;
+  `CreateMedicationEntryInput` gained optional `site` + `entry_type`.
+- `src/hooks/useLogDoseAction.ts`: `LogDoseActionVars` gained optional
+  `site` + `entryType` ('injection' marks parenteral entries); passed
+  through to `createMedicationEntry`.
+- `src/types/navigation.ts`: `RootStackParamList` gained
+  `InjectionLog: { date?: string }`.
+- `App.tsx`: `InjectionLogScreen` mounted as a `Stack.Screen`;
+  `handleLogDose` now navigates to `InjectionLog` (was `Tabs → Today`).
+- Backend already supported this: `POST /api/v2/medications/injections`
+  (SparkyFitnessServer `injectionRepository.createInjection`) increments
+  the pen's `doses_used` and flips status to `finished`/`reorder` when
+  `deduct_pen` is true. `medication_entries.site` column already exists.
+- Minimal screen touch: only `App.tsx` (mount + handler) and the new
+  screen/component; no changes to TodayScreen layout or other screens.
+
+**Verification (this pass)**: mobile `tsc --noEmit` clean; `eslint`
+clean on touched files. (Full `pnpm run test` not run — Jest/babel-jest
+dependency gap noted in prior passes; typecheck/lint green.)
+
+### Paket 5 — Compound Library mobile (hy3/Claude, filling in for ZCode)
+
+Owner explicitly authorized crossing into screen/layout files for this
+one task, since ZCode's token was exhausted and the owner asked for
+Paket 5 to proceed rather than wait ~2 hours. Two commits:
+
+- `6d9e5d17` — foundation: `src/types/compounds.ts`,
+  `src/services/api/compoundLibraryApi.ts` (`fetchCompounds(search?,
+  category?)`, `fetchCompound(id)`), `src/hooks/useCompounds.ts`
+  (`useCompounds` list with a 300ms debounced search, `useCompound`
+  detail). Mirrors the existing `biomarkerResultsApi.ts`/
+  `useBiomarkerResults.ts` pattern exactly.
+- `9ac5f457` — UI: `src/screens/CompoundLibraryScreen.tsx` (search bar
+  + horizontal category-chip row — All/Peptide/Hormone/GLP-1 &
+  Metabolic/Supplement/Other — + evidence-tier-badged compound cards,
+  root-stack library drill-in) and `src/screens/CompoundDetailScreen.tsx`
+  (full monograph: mechanism, bulleted monitoring guidance, tappable
+  source link + attribution, CAS/PubChem/DrugBank identifiers when
+  present). Both carry a persistent "Education and reference only — not
+  medical advice, diagnosis, or a prescription" disclaimer (AGENTS.md
+  "Evidence Before Protocol") — every displayed field is either a
+  literal value from the compound record or a fixed, generic
+  evidence-tier description, nothing computed or inferred.
+  `LibraryShellScreen.tsx`'s Compounds row now navigates to
+  `CompoundLibrary` instead of showing "Preparing"; the other five
+  Browse sections (Evidence, Biomarkers, Guides, Saved, Protocol
+  templates) are untouched and still honestly say "Preparing" — no
+  real backend exists for them yet. Added `CompoundLibrary: undefined`
+  and `CompoundDetail: { id: string }` to `RootStackParamList`, two
+  `<Stack.Screen>` entries in `App.tsx` (`createStackScreenOptions`,
+  `headerBackTitle` set on both per the existing pattern), and both
+  routes to `NATIVE_TABS_ROUTE_EXCLUSIONS` in
+  `__tests__/navigation/nativeHeaderContract.test.ts` (same
+  root-stack-drill-in classification as `FoodsLibrary`/`FoodDetail`).
+
+**Not done in this pass** (read-focused V1, matching what was actually
+asked): no create/edit UI for user-authored custom compounds (the
+backend supports POST/PUT/DELETE at `/api/v2/compounds`, but no mobile
+form calls them yet); seed data is still the 10-compound Open Peptide
+Dataset starter set from the backend pass, not further expanded —
+pulling and vetting real additional compound content from the other
+licensed sources named in `docs/DECISIONS.md` (peptidepedia.org,
+pepmod.com, Pepty/PeptIQ/Protocol/Peppedia/Lifehackr/Longevity Labs)
+needs either live web access this session didn't reliably have, or a
+dedicated follow-up pass — each new compound's mechanism/evidence-tier/
+monitoring-guidance must be a real, sourced fact, never invented, per
+AGENTS.md's "Evidence Before Protocol", so this was deliberately left
+as a flagged gap rather than rushed.
+
+**Verification**: mobile `pnpm run typecheck` and `pnpm run lint`
+(`--max-warnings 0`) clean across the whole repo (not just touched
+files). Targeted tests green: `nativeHeaderContract.test.ts` (7),
+`LibraryShellScreen.test.tsx` (5, updated — the "Preparing" count
+assertion now expects 5, not 6, plus a new navigation test),
+`CompoundLibraryScreen.test.tsx` (7 new), `CompoundDetailScreen.test.tsx`
+(7 new) — 26 tests, all passing. The full `pnpm run test:run` /
+`pnpm run validate` suite was **not** run end-to-end this pass (single
+Jest files were already taking several minutes each in this
+environment); this is the one item Paket 7's validation pass should
+still cover.
+
+### Still open (unchanged by this pass, handoff to ZCode/GLM):
+
+- **Wire `ConflictIndicator`** into `BiomarkersScreen` (or wherever
+  ZCode/GLM decides) using the standalone `useDataConflicts()` hook —
+  both are ready. Note the hook defaults to `status: 'open'`.
+- **Wire reconstitution math** (`calculateConcentration`,
+  `calculateDoseVolume`, `calculateRemainingDoses` from
+  `@workspace/shared`) into the vial/pen creation or detail UI wherever
+  it best fits — pure functions are ready, UI placement is a product/UX
+  call.
+- **Compound create/edit UI** (POST/PUT/DELETE) — backend-ready,
+  mobile-deferred (see above).
+- **Expand the compound seed set** beyond the 10-compound starter using
+  the licensed reference sources — flagged gap, not started.
+- **Paket 7 — Full validation**: end-to-end `pnpm run validate` +
+  `test:run` (mobile), `validate` + `test` (server). Mobile Jest
+  environment note from ZCode's own earlier pass (`babel-jest` missing)
+  did not reproduce in hy3/Claude's own Jest runs this session (dozens
+  of test files ran normally) — likely stale or session-specific; worth
+  a quick re-check before treating it as still blocking, but not
+  re-verified end-to-end here.
+
+
+## Unchanged blockers
+
+- Live-Postgres application of Stage 1A migrations (incl. S2-01
+  DataConflict tables and this pass's `compounds` table) — no
+  docker/.env/psql in agent environments. `db_schema_backup.sql` and
+  `@workspace/shared` Zod schemas for all Stage 1A + S2-01 + `compounds`
+  tables remain unsynchronized (the `compounds` table intentionally has
+  no `Compounds.zod.ts` yet, matching the pre-existing gap for
+  `biomarker_results`/`data_conflicts` — not a new inconsistency).
+- Stage 1B device verification — no physical iOS/Android device access.
+- `metro.config.js` diff: RESOLVED — committed as `e3f9fd40` (Windows
+  Metro DependencyGraph crash fix, scoped `watchFolders`).
+
+
 
 ## Approved task
 
-1. Continue `docs/UX_TRANSFORMATION_REVIEW.md`'s UX-01–UX-18 slice sequence
-   autonomously (UX-01–UX-15 complete as of this handoff).
-2. Diagnose and fix live bugs on request (Health Connect fix, below).
-3. Owner-directed Stage 1A hardening/product-alignment pass: (a) fix real
-   bugs across already-built UX-01–UX-15 surfaces, no new roadmap scope;
-   (b) produce a compound-content governance design document (no
-   implementation); (c) produce a Stage 1A exit-gate readiness review with
-   an explicit Stage 1B recommendation.
+Owner-directed sequence: (1) verify and integrate the HY3 RLS-matrix fix
+prepared on a sibling worktree, (2) fix two Android bugs reported from a
+real device run (ElevationGained permission/log-storm, JSON/HTML response
+parsing), with regression tests and honest Stage 1B doc updates, (3) read
+canonical Stage 2A scope and proceed autonomously through non-device Stage
+2A slices — explicitly forbidding inventing Stage 2A scope if it isn't
+canonically defined.
 
-## Work completed since HEAD `6b2dd592` (prior handoff)
+## Work completed this pass
 
-### Health Connect fix — `6b2dd592`
+### HY3 RLS-matrix fix — cherry-picked as `059140c0`
 
-Fixed repeated "Failed reading OxygenSaturation: Health Connect client is
-not initialized" log spam (up to hundreds of lines per sync, ending in
-"Failed reading 159 fallback OxygenSaturation window(s)"). Root cause:
-nothing in the sync path guaranteed `initHealthConnect()` had run before
-reads started, especially in the `expo-background-task` headless JS
-context — every metric read then failed identically, and the existing
-fallback-window retry logic (built for transient per-window failures) kept
-splitting and retrying a failure that could never succeed. Fix caches the
-"not initialized" state after first detection and short-circuits every
-further native call (raw reads and cumulative aggregation, all record
-types) until the next successful `initHealthConnect()`, with exactly one
-calm `WARNING` log for the whole outage. Scoped entirely to
-`SparkyFitnessMobile/src/services/healthconnect/index.ts`. 7 new tests;
-full suite 77/77 (was 70); broader sync regression 92/92.
+Located on worktree `AETERNA/aeterna-os-rls-fix` (branch
+`fix/rls-matrix-stage1a-tables`, a linked git worktree of this same repo —
+shares object storage, so its commit was visible without a fetch). Commit
+`fa6b0629` ("classify Stage 1A Protocol Core/Safety/Biomarker tables in RLS
+permission matrix") adds exactly 10 lines to
+`SparkyFitnessServer/tests/rlsPermissionMatrix.integration.test.ts`,
+classifying the 8 new Stage 1A tables (`biomarker_results`,
+`protocol_baselines`, `protocol_eligibility_assessments`, `protocol_items`,
+`protocol_versions`, `protocols`, `safety_event_updates`, `safety_events`)
+into the existing `'medication'` RLS bucket. Verified: not already an
+ancestor of canonical HEAD; touches only the intended file; canonical
+HEAD's own divergent commits (S1B-03 through S1B-07) never touch this
+file, so no overlap risk. Cherry-picked clean, no conflicts.
+`SparkyFitnessMobile/metro.config.js` was untouched by this operation
+(confirmed before and after).
 
-### Stage 1A hardening pass — `f0d34301`
+Non-DB server validation: `pnpm run typecheck` passed. The RLS matrix
+integration test itself is gated behind a live-DB `runIf` and could not be
+executed (same Postgres-unavailability blocker as every prior pass — see
+"Stage 1A production-application chores," unchanged, re-confirmed not
+re-litigated this pass).
 
-Audited TodayScreen, ProtocolScreen, BiomarkersScreen, DiaryScreen/Track,
-the write forms (CreatePenForm, CreateSymptomForm), and every shared
-`components/aeterna/` component for state consistency, accessibility,
-duplicated queries, and reuse gaps. Fixed 5 real, verified defects:
+### Android fix A — ElevationGained permission log storm
 
-1. **TodayScreen**: Sleep/HRV/resting-heart-rate rows permanently showed
-   "Calibrating" (implying incomplete data) even with a complete, real,
-   current value, because `hasTrend` was derived from `points.length >= 2`
-   and these three rows always pass `points: []`. Decoupled the state
-   label from sparkline availability.
-2. **ScheduledActionRow**: dose-logging rows wrapped the entire row
-   (summary text + "Mark taken"/"Skip" buttons) in one `accessible={true}`
-   container — VoiceOver/TalkBack collapse that into a single stop,
-   making the buttons unreachable by screen reader. Dose logging was not
-   actually completable with assistive technology. Fixed: the info row is
-   now its own accessible summary; the buttons stay independently
-   focusable.
-3. **BiomarkersScreen**: "Measurements/Trend unavailable" states had no
-   Retry action, unlike the identical pattern already on ProtocolScreen.
-   Added matching Retry buttons.
-4. **CreatePenForm**: Save had no guard, allowing a fully blank submission
-   that would write an unidentifiable, empty vial/pen record — inconsistent
-   with CreateSymptomForm's required-field gate. Now requires at least one
-   field.
-5. **TodayScreen + BiomarkersScreen**: both called
-   `fetchHealthDisplayData('7d')` under two different ad-hoc query keys,
-   doubling the native health read on every tab switch between them and
-   risking inconsistent values between the two screens. Added a shared
-   `healthDisplayQueryKey()` builder in `queryKeys.ts` (this codebase's
-   established convention, which these two screens had bypassed).
+See `docs/STAGE_1B_DEVICE_VERIFICATION.md` §6.A for the full root-cause
+writeup. Summary: Health Connect's fallback read-retry cascade
+(`readHealthRecordsFallback` in
+`SparkyFitnessMobile/src/services/healthconnect/index.ts`) had no
+short-circuit for a deterministic permission-denied `SecurityException`,
+so one stable failure cascaded into 2 day-windows × 24 hourly windows = 48
+redundant native calls and `ERROR` logs. Separately,
+`requestHealthPermissions` trusted `requestPermission()`'s own response
+without cross-checking the authoritative `getGrantedPermissions()` query,
+so the app could report "All 35 metric permissions granted" while a
+record type was still genuinely unreadable.
 
-Also closed a real coverage gap: `TodayScreen.tsx` — the app's primary
-destination — had zero dedicated tests before this pass. Added
-`__tests__/screens/TodayScreen.test.tsx` (6 tests), including a regression
-test for finding #1 above. Full touched-surface + regression suite:
-184/184 passing. typecheck and eslint clean on every touched file.
+Fixed: new `isPermissionDeniedError` classifier short-circuits the
+fallback cascade after one call, logs one `WARNING` per metric per sync
+run; `requestHealthPermissions` now cross-checks `getGrantedPermissions()`
+before reporting a full grant. Manifest/permission declarations were
+**not** changed (both `app.config.ts` and the compiled AndroidManifest
+already declared `READ_ELEVATION_GAINED`, pre-existing, not new this
+pass) — this is a pure JS/TS fix, no native rebuild required for the fix
+itself to take effect (Metro/JS reload is sufficient). Whether the
+device's actual Health Connect grant state for this permission is
+currently correct is a separate, device-side fact this session cannot
+verify; if the honest re-check still shows it denied after a fresh
+"Enable All" or per-metric toggle, the next step is Android Settings →
+Health Connect → App permissions (not a rebuild).
 
-### Compound content governance — `docs/COMPOUND_CONTENT_GOVERNANCE.md` (new, uncommitted in outer repo — see below)
+### Android fix B — JSON Parse error ("Unexpected character: <")
 
-Product-design-only document (no code, no content, no migration) defining:
-compound/intervention taxonomy, monograph content fields, editorial roles,
-evidence-tier assignment criteria, the editorial/review workflow mapped
-onto `docs/DATA_MODEL.md`'s already-canonical `publication_status` states,
-versioning rules, regulatory-status handling (including the still-open
-per-country question), AI-assisted-content boundaries, canonical source
-strategy, reference policy, body-system and biomarker relationship rules,
-and content ownership. Directly answers the "compound-content governance"
-question `docs/DECISIONS.md`'s 2026-07-16 entry left open — the owner can
-approve or amend it before UX-16 work is authorized.
+See `docs/STAGE_1B_DEVICE_VERIFICATION.md` §6.B for the full root-cause
+writeup. Summary: `apiFetch` (`apiClient.ts`) and `healthDataApi.ts`'s
+upload path both called `response.json()` unconditionally on any 2xx
+response. Any 2xx response with an HTML body (wrong server URL landing on
+Metro's dev server, a proxy/login page, a captive portal) crashed with an
+opaque SyntaxError instead of a diagnosable error — reproducing across
+every endpoint routed through these two shared clients, matching the
+reported spread exactly (Preferences, timezone bootstrap, Health Sync
+upload, Medications, Daily Summary, Measurements, Symptoms).
 
-### Stage 1A exit-gate review — `docs/STAGE_1A_EXIT_GATE_REVIEW.md` (new, uncommitted in outer repo — see below)
+No hardcoded wrong URL exists anywhere in the repository (confirmed by
+grep across `app.config.ts`, onboarding, storage) — this is not a
+repo-config bug. The correct backend port is **3010**
+(`docker/.env.example`); this session observed a live Expo/Metro dev
+server on port **8083** during investigation, which is the most likely
+candidate for what the device's configured server URL is actually
+pointing at, but this session has no device access to confirm the
+device's actual saved URL.
 
-Checked every named criterion in `docs/ROADMAP.md`'s Stage 1A exit gate
-against the actual codebase (not memory, not docs). Headline finding:
-**three of the exit gate's eight "baseline → ... → weekly review" legs
-don't exist as implemented features** — Baseline, Eligibility assessment,
-and Protocol activation are all explicitly deferred (matches
-`docs/DECISIONS.md`'s recorded decision, not an oversight), and a fourth,
-Safety Event Workflow, has zero backend implementation. Also found and
-verified: duplicate-dose-submission protection is client-only (no server
-constraint); data export does not cover the three new medication/symptom
-tables (deletion does, via cascade — verified table-by-table); Today
-correctly works without health sync. Full detail, evidence, and an
-explicit checklist for manual/device testing are in the document itself.
-**Recommendation: Stage 1B is not yet ready to start** — not due to any
-defect in Health Sync groundwork, but because Stage 1A's own exit gate has
-not formally passed. Three options are laid out for the owner in the
-document's §10.
+Fixed: new `parseJsonResponse<T>()` (`src/services/api/errors.ts`)
+replaces every bare `response.json()` call in `apiClient.ts` and
+`healthDataApi.ts`. Parses the body as text and attempts `JSON.parse`
+regardless of Content-Type (so a real success with a missing/mislabeled
+header is never rejected); on genuine failure throws one structured,
+secret-free `ApiError` (endpoint, status, content-type, HTML/empty/
+non-JSON classification, ≤200-char body preview) marked
+`nonJsonResponse: true`. `queryClient.ts`'s retry predicate treats that
+marker as non-retryable regardless of status code, so a misrouted request
+fails once per query, not 3×. Test doubles that only implement `.json()`
+(not the full `Response` shape) transparently fall back to the plain
+`.json()` path, so this required zero test-mock-shape migration for files
+whose tests use that pattern — only files with real, fetch-mock-based
+tests exercising the affected code paths needed their mocks completed
+with a `.text()` method (see "Changed/dirty files").
+
+### Stage 1B verification doc
+
+`docs/STAGE_1B_DEVICE_VERIFICATION.md` gained §6, a dated addendum
+recording both bugs, their root causes, fixes, and — explicitly — that
+neither fix was re-verified on the physical device that reported them
+(no device access in this environment). S1B-05's DataConflict scope
+question (flagged to the owner earlier this session, before this
+directive) is not re-litigated or silently resolved here; it remains an
+open, explicitly-flagged gap.
+
+### Stage 2A scope check — stopped, not invented
+
+`docs/ROADMAP.md` defines Stage 2 as a single undivided stage ("Lab and
+action intelligence") with a large deliverable set (confirmed PDF/CSV lab
+import, laboratory provenance, reference ranges, derived marker formulas,
+longitudinal comparison, Response Timeline, Action Plans, Recommendation
+Lifecycle) and its own entry gate: **"S1B passed and biomarker provenance/
+conflict behavior is stable."** Grepped `docs/ROADMAP.md`,
+`docs/DECISIONS.md`, `docs/HANDOFF.md`, `docs/MASTER_PRODUCT_BRIEF.md`,
+and `docs/PRODUCT_SPECIFICATION_V1.md` for any "Stage 2A"/"Stage 2B" split
+— none exists. Only Stage 1 has an owner-approved A/B split
+(`docs/DECISIONS.md`, 2026-07-15, "Split Stage 1 into Protocol Core and
+Health Sync"); no equivalent decision exists for Stage 2.
+
+Given `AGENTS.md`'s explicit instruction not to invent scope, and that
+Stage 2's own entry gate is arguably not cleanly met (S1B-05 ships a
+narrow, tested weight-conflict note rather than the `DataConflict` domain
+`docs/ROADMAP.md`'s Stage 1B Deliverables names by that exact term — see
+`docs/DATA_MODEL.md`'s `DataConflict` entity and this session's earlier
+three-part assessment to the owner), implementation work did not proceed
+into Stage 2. See "Next task."
 
 ## Changed/dirty files and ownership
 
-**`aeterna-os`** — clean. The previously-flagged pre-existing
-`SparkyFitnessMobile/package.json` / `pnpm-lock.yaml` `@expo/ngrok` diff
-noted in every prior handoff is **no longer present** in the working tree
-(`git diff HEAD` on both files is empty) — nothing needed excluding from
-this session's commits.
+**`aeterna-os`**, all committed this pass (`1ed457e1`, `acfc86d7`):
 
-**Outer AETERNA repo (this repo)** — `docs/HANDOFF.md` (this file),
-`docs/COMPOUND_CONTENT_GOVERNANCE.md`, and
-`docs/STAGE_1A_EXIT_GATE_REVIEW.md` are new/updated by this session and
-**not committed** — per this project's established pattern, outer-repo
-`docs/` commits are left for the owner given several files already show as
-modified/untracked from sessions whose ownership was never resolved (see
-every prior handoff's note on `docs/COMPETITIVE_UX_REPORT.md` and others).
-This session did not touch or resolve any of those pre-existing files.
+- `SparkyFitnessMobile/src/services/healthconnect/index.ts` — permission-
+  denied classifier + fallback short-circuit; `requestHealthPermissions`
+  cross-check.
+- `SparkyFitnessMobile/src/services/api/errors.ts` — `parseJsonResponse`,
+  `ApiError.nonJsonResponse`.
+- `SparkyFitnessMobile/src/services/api/apiClient.ts`,
+  `src/services/api/healthDataApi.ts` — use `parseJsonResponse`.
+- `SparkyFitnessMobile/src/hooks/queryClient.ts` — retry predicate skips
+  `nonJsonResponse` errors.
+- `SparkyFitnessMobile/jest.setup.js` — global `react-native-health-connect`
+  mock gained `getGrantedPermissions`.
+- Test files: `__tests__/services/healthconnect/index.test.ts`,
+  `__tests__/services/api/errors.test.ts`, `__tests__/hooks/queryClient.test.ts`,
+  `__tests__/services/api/apiClient.test.ts`, `__tests__/services/apiClient.test.ts`,
+  `__tests__/services/healthDataApi.test.ts`, `__tests__/services/preferencesApi.test.ts`,
+  `__tests__/services/measurementsApi.test.ts`, `__tests__/services/foodEntriesApi.test.ts`,
+  `__tests__/services/foodEntryMealsApi.test.ts`, `__tests__/services/foodsApi.test.ts`,
+  `__tests__/services/goalsApi.test.ts`, `__tests__/services/mealsApi.test.ts`,
+  `__tests__/services/profileApi.test.ts`, `__tests__/services/exerciseApi.test.ts`,
+  `__tests__/services/externalFoodSearchApi.test.ts`,
+  `__tests__/services/api/exerciseApi.test.ts`,
+  `__tests__/services/api/externalExerciseSearchApi.test.ts`,
+  `__tests__/services/api/workoutPresetsApi.test.ts` — completed hand-written
+  fetch-response mocks (added `.text()` alongside/instead of `.json()`) for
+  files whose tests exercise real `apiFetch`-routed code. Two files
+  (`authService.test.ts`, `aiSettingsApi.test.ts`) were initially touched by
+  a batch script, found to test raw-fetch code that does **not** route
+  through `apiFetch`, and reverted via `git checkout --` before verification
+  — confirmed clean.
+
+**Server**: `SparkyFitnessServer/tests/rlsPermissionMatrix.integration.test.ts`
+via the `059140c0` cherry-pick (committed).
+
+**`SparkyFitnessMobile/metro.config.js`** — still has the same pre-existing,
+unexplained `config.watchFolders` diff from before this pass. Confirmed
+untouched by every operation this pass (diffed before/after the RLS
+cherry-pick and again at the end). Still needs owner review before it is
+committed or discarded — unchanged from every prior handoff's note.
+
+**Outer AETERNA repo** — `docs/HANDOFF.md` (this file) and
+`docs/STAGE_1B_DEVICE_VERIFICATION.md` (§6 added) updated, left
+uncommitted for the owner per the established pattern.
 
 ## Verification
 
-- Health Connect fix: 77/77 (`healthconnect/index.test.ts`), 92/92 broader
-  regression, typecheck + eslint clean.
-- Hardening pass: 184/184 across the full touched-surface + regression
-  suite, typecheck + eslint clean.
-- **No on-device verification was performed this session** (no physical
-  device access from this environment) — see
-  `docs/STAGE_1A_EXIT_GATE_REVIEW.md` §7–8 for the specific manual and
-  device testing checklists this leaves outstanding, most notably:
-  VoiceOver/TalkBack reachability of the dose-action buttons (this
-  session's fix should be confirmed under real assistive technology, not
-  just the structural test), and reproducing the original Health Connect
-  log-spam scenario to confirm the fix on a real Android device.
+- Server: `pnpm run typecheck` passed (SparkyFitnessServer). Full
+  `pnpm run validate`/`pnpm test` not run (would include the live-DB-gated
+  RLS integration test, blocked — see below).
+- Mobile: `pnpm run typecheck` clean. `pnpm run lint` (`expo lint src
+  App.tsx index.js __tests__ --max-warnings 0`) clean, zero errors/
+  warnings. Consolidated regression run across all 24 touched/adjacent
+  test suites: **574/574 tests passed**. Committed as `1ed457e1` (Health
+  Connect fix, 3 files) and `acfc86d7` (API hardening fix, 22 files).
+- Two real scripting mistakes were made and caught by running tests, not
+  assumed: (1) a batch `json:`→`text:` mock conversion incorrectly touched
+  3 DELETE-endpoint tests in `api/exerciseApi.test.ts` where
+  `JSON.stringify(undefined)` evaluates to `undefined` (not a string),
+  crashing `parseJsonResponse`'s length check — fixed to `Promise.resolve('')`;
+  (2) the same batch script touched `estimateFoodPhoto`'s 3 success-path
+  mocks in `externalFoodSearchApi.test.ts`, a function that calls
+  `response.json()` directly (not via `apiFetch`) — reverted those 3 back
+  to `.json()`. Both caught by the actual test run failing, not by
+  inspection alone.
+- **No on-device verification of either Android fix** — see
+  `docs/STAGE_1B_DEVICE_VERIFICATION.md` §6. Requires an owner rebuild
+  (native permission state) and manual retest.
+- **No live-database verification** — unchanged blocker, re-confirmed not
+  re-attempted (see below).
+
+## Stage 1A production-application chores (still blocked, not re-attempted with new evidence this pass)
+
+Unchanged from every prior handoff. No docker, no `.env`, no local
+Postgres service, no `psql`, port 5432 unreachable — this pass relied on
+the prior pass's evidence rather than re-running the checks, since nothing
+in this pass's scope touches server infrastructure. Still blocks: applying
+the 8 Stage 1A migrations, `DB Backup.cmd`, booting the server, exercising
+real API flows, and the RLS integration test's live-DB path (including the
+newly cherry-picked classification rows — code-reviewed correct, not
+DB-executed).
+
+Also still outstanding: the shared `@workspace/shared` Zod schemas for the
+8 new Stage 1A tables were never added (needs a live schema to
+generate/validate against).
 
 ## Decisions and open risks
 
-- No new `docs/DECISIONS.md` entry was added this session — none of this
-  session's changes required a scope or architecture decision beyond what
-  the owner already directed (bug fix, bug fixes to existing surfaces,
-  and two new reference documents that make no unilateral product calls).
-- **Open risk, elevated by this session's review:** Stage 1A's exit gate
-  requires an owner decision among `docs/STAGE_1A_EXIT_GATE_REVIEW.md`
-  §10's three options before Stage 1B (or any further roadmap slice) can
-  proceed with a clear mandate. Proceeding as if Stage 1A were complete
-  because UX-01–UX-15 are would misrepresent what the exit gate actually
-  requires.
-- **Open risk, unchanged from every prior handoff:** the outer-repo
-  `docs/` changes flagged as uncommitted remain uncommitted and unreviewed
-  by any session since they first appeared.
-- **Open risk, unchanged:** `docs/ROADMAP.md`'s Stage 0 exit-gate items
-  (reproducible builds, automated-test baseline, live HealthKit/Health
-  Connect evidence) remain formally unresolved per
-  `docs/STAGE_0_COMPLETION_SUMMARY.md`.
+- **Stage 2 entry gate is not cleanly met.** `docs/ROADMAP.md`: "S1B
+  passed and biomarker provenance/conflict behavior is stable." S1B-05
+  ships a narrow, honest, tested weight-only conflict *note* — not the
+  `DataConflict` domain (persisted entity, status lifecycle, user
+  resolution) `docs/ROADMAP.md`'s own Stage 1B Deliverables name by that
+  exact term. This gap was already surfaced to the owner earlier this
+  session (a dedicated three-part assessment); it is not re-litigated or
+  silently closed here. Proceeding into Stage 2 implementation without an
+  owner decision on this point would risk building on an unstable
+  foundation the exit gate itself warns about.
+- **"Stage 2A" is not a canonical scope.** Only "Stage 2" (undivided)
+  exists in `docs/ROADMAP.md`. Inventing a sub-scope was explicitly
+  forbidden by this pass's own instructions and by `AGENTS.md`'s general
+  scope-control rules. No Stage 2 implementation work was attempted.
+- **`metro.config.js`'s uncommitted diff** remains unexplained and
+  unresolved — same open item as every prior handoff.
+- **Live-DB application of Stage 1A migrations remains blocked** — hard
+  external constraint, unchanged.
+- **Unchanged from every prior handoff:** the iOS HealthKit read-permission
+  limitation is real and permanent (not a gap to fix); S1B-08 on-device
+  checklist has still not been run on any physical device by any agent
+  session; Stage 0 exit-gate evidence items remain formally unresolved.
 
 ## Next task
 
-Owner decision required — see `docs/STAGE_1A_EXIT_GATE_REVIEW.md` §10 and
-§11 for the full basis. In order of what needs the owner first:
+Two independent next tasks, in priority order:
 
-1. Choose how to treat the three missing exit-gate legs (accept the
-   current "tracked interventions" substitute as sufficient, authorize
-   Baseline/Eligibility/Protocol-activation/Safety-event as additional
-   Stage 1A scope, or split the difference with a named follow-up slice).
-2. Review `docs/COMPOUND_CONTENT_GOVERNANCE.md` and approve or amend it if
-   UX-16 is to be unblocked.
-3. Decide whether to commit the three new/updated outer-repo docs
-   (`HANDOFF.md`, `COMPOUND_CONTENT_GOVERNANCE.md`,
-   `STAGE_1A_EXIT_GATE_REVIEW.md`) alongside the other long-uncommitted
-   `docs/` changes, or handle them separately.
+1. **Owner decision needed before Stage 2 work begins:** does the
+   Stage 2 entry gate's "biomarker provenance/conflict behavior is
+   stable" language require building the full `DataConflict` domain
+   (persisted entity + resolution workflow) before Stage 2 starts, or is
+   the current narrow conflict-note sufficient with an explicit,
+   recorded scope-reduction decision in `docs/DECISIONS.md`? Once
+   resolved, and once the owner names what "Stage 2A" (or the first Stage
+   2 slice) should concretely cover, implementation can proceed
+   autonomously the same way S1B-01–S1B-07 did.
+2. **Rebuild and retest both Android fixes on the physical device that
+   reported them** — ElevationGained should no longer log-storm and
+   should honestly report partial (not full) permission coverage; API
+   calls hitting a non-JSON response should surface one clear, structured
+   error instead of crashing on `response.json()`. If the device's
+   configured server URL turns out to be pointing at Metro's port (8083)
+   rather than the Express server's port (3010), correct it in
+   Settings → Server.
 
-No further roadmap-slice implementation should start until (1) is decided
-— the next agent should not assume Stage 1A is closed.
+Unchanged, lower-priority background items: run the full
+`docs/STAGE_1B_DEVICE_VERIFICATION.md` checklist; apply Stage 1A
+migrations to a live Postgres instance once reachable; resolve
+`metro.config.js`'s diff with the owner.
