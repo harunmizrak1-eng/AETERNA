@@ -76,6 +76,60 @@ governed Protocol Core), and Safety Event Workflow has no backend support.
 that missing work — tracked as S1A-16 through S1A-26 — rather than close
 the gate against a narrower scope.
 
+### Faz A — Peptide-First UI (added 2026-07-17, see `docs/DECISIONS.md`)
+
+An in-stage reordering of Stage 1A, not a stage gate change. Owner-directed
+re-centering on the product heart: peptide protocol, vial/reconstitution,
+today's schedule, dose logging. Authorizes the following work inside Stage 1A:
+
+- **Compound Library (Knowledge Engine)** — reclassified Stage 1A scope (not
+  Stage 2). Seeded by Open Peptide Dataset (CC BY 4.0). Mobile library screen
+  + compound detail/monograph + backend `compounds` table.
+- **Track → Logbook** — the accepted UX-13 scope. Track tab repurposed from
+  Sparky's nutrition `DiaryScreen` into a dose/injection/symptom/lab timeline;
+  nutrition diary reachable behind a `__DEV__` route.
+- **Peptide-first Onboarding** — replaces Sparky server-config onboarding;
+  trust-verification governance gate; "always free, no paywall" counter-
+  positioning.
+- **AddSheet peptide-first** — global "+" surfaces Log dose / Log injection /
+  Log lab result / Flag safety concern.
+- **Visual reset** — new `aeterna-v2` theme variant (Apple Health clarity over
+  ivory editorial); serif reduced to Library/headers.
+
+**Status (2026-07-18): COMPLETE.** HEAD `b681caa8` / Faz A tooling extension
+HEAD `ea489529`. Mobile surface is peptide-first; backend (compounds,
+reconstitution, biomarker normalization, DataConflict) and the injection
+logging flow are live; theme is Apple Health white/indigo. Three-agent
+split recorded in `docs/DECISIONS.md`.
+
+Non-goals (unchanged): Nutrition and Training Engines remain Stage 3.
+Reconstitution calculator and injection-site picker UI are Faz A-followup
+(backend pure functions may land during Faz A).
+
+### Faz B — Tool screens, Community, Reminders, Account export (added 2026-07-18)
+
+In-stage deepening of Stage 1A, not a new stage. Fills operational gaps users
+hit immediately after Faz A and the social/knowledge backbone of the
+seven-engine vision.
+
+- **Peptide tool screens** — `ReconstitutionCalculatorScreen`,
+  `HalfLifeChartsScreen`, `InteractionCheckerScreen` (reached from a Tools
+  cluster on Library). Educational/reference only; not medical advice.
+- **Community (Discourse Study Club)** — Discourse REST proxy on the server +
+  mobile `TopicList` / `TopicDetail` / `CreatePost` screens. Topic-based, not
+  a social feed. Ships against a Discourse-shaped mock when no live Discourse
+  is reachable; flips to real Discourse via `DISCOURSE_BASE_URL` +
+  `DISCOURSE_API_KEY`.
+- **Protocol dose reminders** — local `expo-notifications` scheduling from
+  protocol schedules; settings toggle.
+- **General account export** — `/api/v2/account/export` covering every Stage
+  1A + compounds entity, not gated behind the medications permission.
+
+Non-goals (unchanged): Nutrition and Training Engines remain Stage 3.
+Faz B does not relitigate Stage 1B device verification or Stage 2 lab import.
+
+
+
 ### Deliverables
 
 - Onboarding and Today.

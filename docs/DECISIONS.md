@@ -1,5 +1,45 @@
 # ÆTERNA decision log
 
+## 2026-07-18 — Faz B started: tool screens, Community (Discourse), reminders, account export
+
+Decision:
+With Faz A code-complete (HEAD `ba220562` → `b681caa8`), owner directed
+the three-agent team into Faz B (product deepening) in parallel:
+
+- **ZCode (GLM-5.2)** — three Pepty/PeptIQ-inspired tool screens:
+  `ReconstitutionCalculatorScreen`, `HalfLifeChartsScreen`,
+  `InteractionCheckerScreen` (commit `ea489529`), reached from a new
+  Tools cluster on the Library shell. Educational/reference only; not
+  medical advice.
+- **Claude** (final day, membership ended 2026-07-18) — Supabase
+  Postgres migration application (critical blocker: all 11 pending
+  migrations live), general `/api/v2/account/export` endpoint (Stage 1A
+  GDPR coverage gap), and `compounds` half-life / interactions backend
+  columns (`20260718120000_add_compound_pharmacokinetics.sql`,
+  `compoundInteractions` service) feeding ZCode's tool screens.
+- **hy3** — Discourse community integration (proxy + mobile screens,
+  mock-REST fallback when no live Discourse is installable in agent envs)
+  and protocol dose reminder notifications.
+
+Faz B is **in-stage deepening of Stage 1A**, not a new stage. Roadmap
+stage gates (1A → 1B → 2 → 3) unchanged.
+
+Open in Faz B (after this entry):
+- Supabase Postgres: agent environments have no DB network egress
+  (getaddrinfo ENOTFOUND); owner runs the migration application locally
+  against `db.oodkaoqqthatbxdmtfni.supabase.co` or hands a reachable
+  connection to an agent.
+- Live Discourse: hy3 ships a Discourse-shaped mock proxy; flipping
+  `DISCOURSE_BASE_URL` + `DISCOURSE_API_KEY` later wires it to a real
+  self-hosted instance.
+
+Why:
+Faz A delivered the peptide-first surface; Faz B fills the operational
+gaps users immediately hit (reconstitution math, half-life intuition,
+stack-interaction advisory) and the social/knowledge backbone
+(Discourse Study Club) named in `docs/MASTER_PRODUCT_BRIEF.md`'s
+seven-engine vision.
+
 ## 2026-07-18 — Faz A — Peptide-First UI complete; three-agent division recorded
 
 Decision:

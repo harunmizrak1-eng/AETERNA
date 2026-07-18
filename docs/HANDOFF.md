@@ -49,8 +49,49 @@
   `tests/compoundSeed.test.ts`) — left untouched by hy3/Claude.
 - Last agent: hy3/Claude (Paket 7 section below). **Repo `tsc` is red
   only because of ZCode's `useLogDoseAction.ts` `vars` bug — see the
-  Paket 7 blocker note; ZCode to fix.**
-- Updated: 2026-07-18 early morning, Europe/Istanbul
+  Paket 7 blocker note; ZCode to fix.** RESOLVED by ZCode 2026-07-18
+  (destructured `site`/`entryType` referenced as `vars.*` — fixed to use
+  the in-scope names).
+- Updated: 2026-07-18, Europe/Istanbul
+
+## Faz B progress (ZCode pass — 2026-07-18, after Faz A closed)
+
+### Done this pass (ZCode):
+
+- **Three peptide tool screens** (commit `ea489529`):
+  `src/screens/tools/ReconstitutionCalculatorScreen.tsx`,
+  `HalfLifeChartsScreen.tsx`, `InteractionCheckerScreen.tsx`. Pure
+  client-side reconstitution math (uses `@workspace/shared`
+  `calculateConcentration` / `calculateDoseVolume`); half-life envelope
+  reads `custom_fields.half_life_hours`; interaction checker is a
+  curated rules table (GLP-1 stacking, GHRH overlap, etc.), not AI.
+  All three carry "reference/educational only — not medical advice"
+  copy. Reached from a new Tools cluster on `LibraryShellScreen`.
+  Navigation: 3 new RootStackParamList entries + App.tsx mounts +
+  `nativeHeaderContract.test.ts` exclusions. typecheck --incremental clean.
+- **Bug fix**: `useLogDoseAction.ts` `vars.site`/`vars.entryType` →
+  in-scope `site`/`entryType` (the mutationFn destructures them).
+- **Governance docs**: DECISIONS.md Faz B entry; ROADMAP.md Faz B
+  section; this HANDOFF update.
+
+### In flight (other agents, do not duplicate):
+
+- **Claude** (final day): Supabase Postgres migration application
+  (`db.oodkaoqqthatbxdmtfni.supabase.co`), `account/export` endpoint,
+  `compounds` half-life/interactions backend
+  (`20260718120000_add_compound_pharmacokinetics.sql` +
+  `compoundInteractions` service — untracked/dirty this pass).
+- **hy3**: Discourse community proxy + mobile screens (mock REST
+  fallback), protocol dose reminders via `expo-notifications`.
+
+### Carry-forward blockers (unchanged):
+
+- Live-Postgres application of every migration — agent environments
+  have no DB network egress. Owner or Claude (in an env with egress)
+  must apply to the Supabase project.
+- Stage 1B device verification — owner reported 2026-07-18 that
+  physical-device testing was performed; formal close still pending
+  owner sign-off in `docs/STAGE_1B_DEVICE_VERIFICATION.md`.
 
 ## Approved direction (2026-07-17)
 
@@ -405,15 +446,61 @@ aids).
   re-verified end-to-end here.
 
 
-## Unchanged blockers
+## Live Postgres — RESOLVED on Neon (2026-07-18, hy3/Claude)
 
-- Live-Postgres application of Stage 1A migrations (incl. S2-01
-  DataConflict tables and this pass's `compounds` table) — no
-  docker/.env/psql in agent environments. `db_schema_backup.sql` and
-  `@workspace/shared` Zod schemas for all Stage 1A + S2-01 + `compounds`
-  tables remain unsynchronized (the `compounds` table intentionally has
-  no `Compounds.zod.ts` yet, matching the pre-existing gap for
-  `biomarker_results`/`data_conflicts` — not a new inconsistency).
+The long-standing "no live Postgres" blocker is resolved on a **Neon**
+Postgres (owner-provided) after **Supabase proved incompatible**: Supabase
+permanently reserves the `auth` schema for GoTrue and won't let the
+`postgres` role create objects there (confirmed — `GRANT CREATE ON SCHEMA
+auth` is silently refused), but `InitialDB.sql` must create `auth.users`
+and 32 migrations depend on owning `auth`. Neon (owner role, no reserved
+`auth`, PG 18.4) took the whole chain.
+
+Done against Neon (`ep-noisy-union-auqe93vv...neon.tech`, db `neondb`):
+- **All 199 migrations applied** in order (recorded in
+  `system.schema_migrations`), then **`rls_policies.sql` applied** and
+  **grants** issued to a dedicated non-bypassrls `sparky_app` role.
+- Verified: **106 public tables, 8/8 ÆTERNA tables present, compounds
+  seed = 48** (note: expectation was ~57 — check the
+  `20260718000000_seed_open_peptide_dataset.sql` content if exactly 57 is
+  intended).
+- **Real RLS defect found + fixed.** `rls_policies.sql`'s hardcoded
+  `ENABLE ROW LEVEL SECURITY` list omitted **11 ÆTERNA tables**
+  (`protocols`, `protocol_versions`, `protocol_items`, `protocol_baselines`,
+  `protocol_eligibility_assessments`, `safety_events`,
+  `safety_event_updates`, `biomarker_results`, `data_conflicts`,
+  `data_conflict_candidates`, `compounds`) — their policies existed but
+  RLS was never enabled, so those tables had **no row isolation** (a real
+  security gap affecting any deployment, not just this one). Enabled RLS on
+  all 11 on Neon (now 90 RLS-enabled tables) and a live A/B check confirms
+  cross-user isolation now enforces (`user B` cannot see `user A`'s
+  biomarker rows). **Source fix added to `db/rls_policies.sql`
+  (uncommitted — owner to review/commit); the 11 tables were added to the
+  enable-list.**
+
+Uncommitted changes left for owner review (NOT committed, per "only commit
+db_schema_backup.sql"):
+- `SparkyFitnessServer/db/rls_policies.sql` — the RLS-enable fix above.
+- `SparkyFitnessServer/db/poolManager.ts` — env-gated `ssl` support
+  (`SPARKY_FITNESS_DB_SSL=require`) so the server can connect to Neon/any
+  managed Postgres. Required for `pnpm start` against Neon.
+- `aeterna-os/.env` (gitignored) — the working Neon connection config +
+  generated `sparky_app` password / API-encryption key / better-auth secret.
+
+Still open:
+- **`db_schema_backup.sql` NOT synced** — `pg_dump` is not installed in
+  this environment (the `db_backup.sh` script needs postgresql@18 client
+  tools). Not faked. Owner: run `./db_backup.sh` (or `DB Backup.cmd`) from
+  a machine with `pg_dump` now that the DB is populated, then commit the
+  backup. This is the one piece of the original task still outstanding.
+- The RLS-matrix vitest (`rlsPermissionMatrix.integration.test.ts`) was
+  NOT run against Neon: its DB-reachability probe opens a non-SSL
+  connection and would skip on Neon; making it run needs SSL added to that
+  probe (a committed-test change not made this pass). The direct A/B RLS
+  check above is the equivalent verification.
+- `@workspace/shared` Zod schemas for the Stage 1A + S2-01 + `compounds`
+  tables remain unsynchronized (unchanged; `compounds` intentionally has no
+  `Compounds.zod.ts` yet, matching `biomarker_results`/`data_conflicts`).
 - Stage 1B device verification — no physical iOS/Android device access.
 - `metro.config.js` diff: RESOLVED — committed as `e3f9fd40` (Windows
   Metro DependencyGraph crash fix, scoped `watchFolders`).
