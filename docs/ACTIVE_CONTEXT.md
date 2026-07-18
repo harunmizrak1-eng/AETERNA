@@ -37,7 +37,7 @@ Canonical product definition: `docs/PRODUCT_SPECIFICATION_V1.md`.
 
 - Repository: `C:\Users\harun\Documents\New project\AETERNA\aeterna-os`
 - Branch: `overnight/aeterna-product-integration`
-- Verified HEAD: `882ddca1`
+- Verified HEAD: `52282f02`
 - Remote state: not re-verified after the final Claude commits
 - Working tree: clean
 
@@ -53,6 +53,7 @@ Recent accepted commits:
 - `5b152eea` real Discourse category slug in topic detail
 - `b458bb7b` touched-file Faz B lint cleanup
 - `882ddca1` reminder payload type correction from clean typecheck
+- `52282f02` real Compound-to-ProtocolItem link and prefilled protocol draft
 
 ## Current phase and gates
 
