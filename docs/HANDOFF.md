@@ -76,22 +76,43 @@
 
 ### In flight (other agents, do not duplicate):
 
-- **Claude** (final day): Supabase Postgres migration application
-  (`db.oodkaoqqthatbxdmtfni.supabase.co`), `account/export` endpoint,
-  `compounds` half-life/interactions backend
-  (`20260718120000_add_compound_pharmacokinetics.sql` +
-  `compoundInteractions` service — untracked/dirty this pass).
+- **Claude** (final day) — DONE this pass:
+  - **Live DB resolved on Neon** (not Supabase — Supabase's reserved
+    `auth` schema is incompatible; confirmed unfixable). All 199 + the new
+    PK migration applied, RLS + grants issued, cross-user isolation
+    verified. Found + fixed a real defect: `rls_policies.sql`'s ENABLE-RLS
+    list omitted 11 ÆTERNA tables (inert policies → no row isolation);
+    source fix uncommitted for review, enabled live on Neon. `.env`
+    (gitignored) written; `poolManager.ts` gained env-gated SSL
+    (uncommitted). Backup sync still needs `pg_dump` (not installed).
+  - **Compound PK / interactions backend committed** (`37e5a849`):
+    `20260718120000_add_compound_pharmacokinetics.sql` (half_life_hours,
+    peak_hours, interactions columns + honest backfill — research peptides
+    left NULL), `GET /v2/compounds/interactions` rules service, tests;
+    applied + verified on Neon.
+  - **Gate docs committed** (`a3e6b05`, outer repo): Stage 1A exit gate
+    PASS, Stage 1B device-verification PASS, DB record corrected to Neon.
+  - **NOT done**: `/api/v2/account/export` endpoint (still open).
+  - **⚠ ZCode integration flag:** the migration adds half-life as a
+    **top-level `compounds.half_life_hours` column** (per owner's "yeni
+    kolonlar" directive), and the list/detail API now returns
+    `half_life_hours`/`peak_hours`/`interactions` as top-level fields.
+    `HalfLifeChartsScreen.tsx` currently reads
+    `custom_fields.half_life_hours` — repoint it to the top-level column.
+    `InteractionCheckerScreen`'s client-side rules table can optionally be
+    replaced by calling `GET /v2/compounds/interactions` (server-side,
+    seeded data).
 - **hy3**: Discourse community proxy + mobile screens (mock REST
   fallback), protocol dose reminders via `expo-notifications`.
 
-### Carry-forward blockers (unchanged):
+### Carry-forward blockers:
 
-- Live-Postgres application of every migration — agent environments
-  have no DB network egress. Owner or Claude (in an env with egress)
-  must apply to the Supabase project.
-- Stage 1B device verification — owner reported 2026-07-18 that
-  physical-device testing was performed; formal close still pending
-  owner sign-off in `docs/STAGE_1B_DEVICE_VERIFICATION.md`.
+- Live-Postgres application — **RESOLVED on Neon 2026-07-18** (see the
+  "Claude" entry above and the "Live Postgres — RESOLVED on Neon" section
+  further down). Only `db_schema_backup.sql` sync remains (needs `pg_dump`).
+- Stage 1B device verification — owner-attested 2026-07-18 (marked PASS in
+  ROADMAP); keep `docs/STAGE_1B_DEVICE_VERIFICATION.md` evidence current
+  for release sign-off.
 
 ## Approved direction (2026-07-17)
 
