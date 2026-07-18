@@ -37,8 +37,8 @@ Canonical product definition: `docs/PRODUCT_SPECIFICATION_V1.md`.
 
 - Repository: `C:\Users\harun\Documents\New project\AETERNA\aeterna-os`
 - Branch: `overnight/aeterna-product-integration`
-- Verified HEAD: `5b152eea`
-- Remote state: local branch ahead of origin by 8 commits
+- Verified HEAD: `882ddca1`
+- Remote state: not re-verified after the final Claude commits
 - Working tree: clean
 
 Recent accepted commits:
@@ -51,15 +51,22 @@ Recent accepted commits:
 - `17b91501` mobile Interaction Checker connected to server
 - `8508bd42` protocol reminder lifecycle hardening
 - `5b152eea` real Discourse category slug in topic detail
+- `b458bb7b` touched-file Faz B lint cleanup
+- `882ddca1` reminder payload type correction from clean typecheck
 
 ## Current phase and gates
 
-Faz B is closing. Code covers peptide tools, account export, reminders, and the
-core Discourse adapter. Claude is expected to finish the minimum Study Club
-interaction layer: replies, pagination, search, validation, and final Faz B
-verification. A deployed Discourse instance, credentials, categories,
-per-user identity/SSO, and live smoke testing remain external release work and
-must not be fabricated.
+Faz B core tooling is complete, but Study Club is not yet interaction-complete.
+The Discourse adapter and category/topic/detail/create/like/report foundation
+exist. Replies, bounded pagination, search, capability/identity honesty, and
+final moderation validation are the closing pass. A deployed Discourse
+instance, credentials, categories, per-user identity/SSO, and live smoke
+testing remain external release work and must not be fabricated.
+
+The peptide golden path is the product gate before Labs: Compound -> Protocol
+-> schedule/dose -> reminder -> Today -> taken/skipped/injection -> vial and
+inventory -> symptom -> Weekly Review. Codex owns its audit and repair while
+the Study Club closing pass runs in non-overlapping files.
 
 Faz C has started with the existing 2D Body Atlas. Its compound-effect mode is
 currently derived heuristically from `mechanism_summary`. Faz C replaces that
@@ -79,24 +86,23 @@ primary tabs.
 - Reviews and cherry-picks agent commits
 - Owns licensed donor extraction and adoption
 
-### Claude, final current pass
+### Claude
 
-- Faz B Study Club completion and verification
-- Owns community mobile/server files for that pass
-- Must not edit donor files or Faz C Body Atlas files
+- No longer active. Final accepted HEAD from Claude: `882ddca1`.
 
 ### HY3
 
-- Next: Faz C evidence relationship backend foundation
-- Owns new server migration/repository/routes/tests and shared contracts only
-- Does not seed donor content or edit mobile screens
+- Immediate: minimum Study Club server completion
+- Owns Community/Discourse server routes, client, validation, capability
+  contract, rate-limit integration, and focused tests only
+- Does not edit mobile, donor, Protocol, Library, Labs, or Body Atlas files
 
 ### DeepSeek V4 Flash
 
-- Starts only after HY3's accepted commit is integrated
-- Next: connect Body Atlas mobile to the evidence relationship API
-- Does not edit server migrations, donor data, Compound Detail, navigation, or
-  canonical documentation
+- Immediate: minimum Study Club mobile completion against the fixed contract in
+  `docs/AGENT_TASKS.md`
+- Owns Community screens/API/hooks/tests only
+- Does not edit server, donor, Protocol, Library, navigation, or Body Atlas
 
 ## File collision boundaries
 
@@ -108,20 +114,23 @@ Codex-only while donor adoption is active:
 - `SparkyFitnessMobile/src/screens/CompoundDetailScreen.tsx`
 - `C:\Users\harun\Documents\New project\references\**`
 
-Claude-only until Faz B handoff:
+HY3-only during Study Club closure:
 
-- Community screens/API/routes and current Discourse client
-- Study Club reply/search/pagination work
+- `SparkyFitnessServer/routes/v2/communityRoutes.ts`
+- `SparkyFitnessServer/services/discourseClient.ts`
+- Their focused server tests and an existing rate-limit integration point
 
-HY3-only for its assigned task:
+DeepSeek-only during Study Club closure:
 
-- New evidence/relationship migration, repository, route, service, tests
-- New shared evidence/relationship schemas
+- Community mobile screens and focused tests
+- `SparkyFitnessMobile/src/services/api/communityApi.ts`
+- New Community hooks/types/utilities
 
-DeepSeek-only after HY3 integration:
+Codex-only during Golden Path work:
 
-- `SparkyFitnessMobile/src/screens/atlas/BodyAtlasScreen.tsx`
-- New mobile relationship API/hook/types/tests listed in its task
+- Compound Detail, Protocol Detail, Today/Track product linkage, and primary
+  Library transformation files
+- Canonical integration and task/context documentation
 
 ## Known external requirements
 
@@ -156,9 +165,11 @@ Shared changes require relevant server/mobile consumers to be typechecked.
 
 ## Next execution order
 
-1. Claude closes Faz B Study Club code and reports external blockers.
-2. Codex reviews/integrates Claude and closes or holds Faz B.
-3. HY3 implements the bounded Faz C relationship backend.
-4. Codex reviews/integrates HY3.
-5. DeepSeek connects Body Atlas mobile to the accepted API.
-6. Codex continues licensed donor adoption where ownership does not overlap.
+1. HY3 implements Study Club server completion from `882ddca1`.
+2. DeepSeek implements Study Club mobile completion from the same fixed API
+   contract without touching HY3 files.
+3. Codex audits and repairs the peptide golden path in parallel.
+4. Codex integrates HY3 first, DeepSeek second, and runs cross-layer checks.
+5. Faz B closes as CODE COMPLETE; live Discourse provisioning remains a release
+   blocker until real-instance smoke testing passes.
+6. Faz C evidence relationships resume only after the golden-path gate passes.
