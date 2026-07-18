@@ -6,6 +6,8 @@ Read this file before every task. Detailed rules live in the canonical documents
 - Delivery order, stage gates, and non-goals: `docs/ROADMAP.md`
 - Domain entities, relationships, and statuses: `docs/DATA_MODEL.md`
 - Material decisions: `docs/DECISIONS.md`
+- Current multi-agent state and ownership: `docs/ACTIVE_CONTEXT.md`
+- Active bounded agent tasks: `docs/AGENT_TASKS.md`
 
 ÆTERNA is a premium longevity operating system built around:
 
@@ -35,8 +37,10 @@ invent evidence, or silently change a protocol.
 - The parity blueprint is a destination map, not implementation permission.
 - `docs/ROADMAP.md` is authoritative for active scope.
 - Stage 1A Protocol Core must pass its gate before Stage 1B Health Sync begins.
-- V1 excludes nutrition, community, advanced AI, clinical portal, CGM, genetics,
-  imaging, cohort analytics, and autonomous recommendations.
+- The approved Study Club community is active Faz B scope. Nutrition and
+  advanced AI remain deferred unless `docs/ACTIVE_CONTEXT.md` and an explicit
+  task card activate them. Clinical portal, CGM, genetics, imaging, cohort
+  analytics, and autonomous recommendations remain excluded.
 - Documentation, audit, and prototype tasks must not add product features,
   dependencies, migrations, or infrastructure.
 - Risky or cross-domain work follows: audit → smallest safe plan → approval →
