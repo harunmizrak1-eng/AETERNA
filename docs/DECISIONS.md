@@ -11,12 +11,21 @@ the three-agent team into Faz B (product deepening) in parallel:
   `InteractionCheckerScreen` (commit `ea489529`), reached from a new
   Tools cluster on the Library shell. Educational/reference only; not
   medical advice.
-- **Claude** (final day, membership ended 2026-07-18) — Supabase
-  Postgres migration application (critical blocker: all 11 pending
-  migrations live), general `/api/v2/account/export` endpoint (Stage 1A
-  GDPR coverage gap), and `compounds` half-life / interactions backend
-  columns (`20260718120000_add_compound_pharmacokinetics.sql`,
-  `compoundInteractions` service) feeding ZCode's tool screens.
+- **Claude** (final day, membership ended 2026-07-18) — (1) **live
+  Postgres blocker RESOLVED on Neon**, not Supabase: Supabase permanently
+  reserves the `auth` schema for GoTrue and silently refuses `postgres`
+  the CREATE privilege there, but `InitialDB.sql` and 32 migrations must
+  own `auth`, so Supabase is unusable as-is; the owner supplied a Neon
+  Postgres (PG 18.4) and all 199 + the new PK migration applied cleanly,
+  RLS + grants issued, cross-user isolation verified. Also found and fixed
+  a real defect — `rls_policies.sql`'s ENABLE-RLS list omitted 11 ÆTERNA
+  tables, leaving their policies inert (no row isolation) on every
+  deployment (source fix left uncommitted for review; enabled live on
+  Neon). (2) `compounds` half-life / interactions backend committed
+  (`37e5a849`: `20260718120000_add_compound_pharmacokinetics.sql`,
+  `compoundInteractions` rules service, `GET /v2/compounds/interactions`)
+  feeding ZCode's tool screens. (3) `/api/v2/account/export` endpoint —
+  NOT done (still open, see below).
 - **hy3** — Discourse community integration (proxy + mobile screens,
   mock-REST fallback when no live Discourse is installable in agent envs)
   and protocol dose reminder notifications.
@@ -25,10 +34,14 @@ Faz B is **in-stage deepening of Stage 1A**, not a new stage. Roadmap
 stage gates (1A → 1B → 2 → 3) unchanged.
 
 Open in Faz B (after this entry):
-- Supabase Postgres: agent environments have no DB network egress
-  (getaddrinfo ENOTFOUND); owner runs the migration application locally
-  against `db.oodkaoqqthatbxdmtfni.supabase.co` or hands a reachable
-  connection to an agent.
+- **Live DB: RESOLVED on Neon** (2026-07-18). Supabase (`db.oodkaoqqthatbxdmtfni`)
+  was abandoned — its reserved `auth` schema is incompatible with the
+  SparkyFitness migration chain (confirmed: `GRANT CREATE ON SCHEMA auth`
+  is silently refused). Neon (`ep-noisy-union-auqe93vv…neon.tech`, db
+  `neondb`) has the full schema + RLS applied. Remaining: `db_schema_backup.sql`
+  sync needs `pg_dump` (not installed in the agent env — owner runs
+  `./db_backup.sh` against the Neon `.env`); `/api/v2/account/export`
+  endpoint still to build.
 - Live Discourse: hy3 ships a Discourse-shaped mock proxy; flipping
   `DISCOURSE_BASE_URL` + `DISCOURSE_API_KEY` later wires it to a real
   self-hosted instance.

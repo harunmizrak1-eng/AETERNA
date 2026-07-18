@@ -56,7 +56,14 @@ Connect behavior remain unvalidated.
 
 ## Stage 1A — ÆTERNA Foundation & Rebranding (Protocol Core)
 
-**Status: IN PROGRESS — the single active implementation stage.**
+**Status: EXIT GATE PASSED — owner decision 2026-07-18 (see `docs/DECISIONS.md`).**
+The canonical work the exit-gate review flagged as missing is now implemented
+and committed as S1A-16 through S1A-26 (Protocol Core persistence, Baseline,
+Eligibility, review/activation, dose idempotency, vial/inventory, SafetyEvent
+backend, BiomarkerResult, export/deletion, Weekly Review), surfaced on the
+Faz A peptide-first mobile UI, and the live database is provisioned (Neon,
+2026-07-18 — see the "Live Postgres" note in `docs/HANDOFF.md`). Faz A and
+Faz B run as in-stage deepening on top of this passed gate.
 `docs/UX_TRANSFORMATION_REVIEW.md` (adopted 2026-07-16, see
 `docs/DECISIONS.md`) is the canonical, granular execution plan for this
 stage — screen-by-screen classification and the UX-01–UX-18 slice sequence
@@ -75,6 +82,13 @@ governed Protocol Core), and Safety Event Workflow has no backend support.
 `docs/DECISIONS.md` (2026-07-16) records the owner's decision to complete
 that missing work — tracked as S1A-16 through S1A-26 — rather than close
 the gate against a narrower scope.
+
+**Resolution (2026-07-18):** S1A-16 through S1A-26 are all implemented and
+committed; Baseline, Eligibility, Protocol draft/review/activation, and the
+SafetyEvent backend now exist as canonical features (no longer only the
+"tracked interventions" compatibility shell), the data surfaces on the Faz A
+mobile UI, and the schema is applied to a live Postgres (Neon). On that basis
+the owner marked the Stage 1A exit gate PASSED (2026-07-18).
 
 ### Faz A — Peptide-First UI (added 2026-07-17, see `docs/DECISIONS.md`)
 
@@ -161,6 +175,14 @@ Faz B does not relitigate Stage 1B device verification or Stage 2 lab import.
   biological age, practitioner workflows, cohort analytics, and gamification.
 
 ## Stage 1B — Health Sync
+
+**Status: implementation complete (S1B-01..07); device verification PASS —
+owner-attested 2026-07-18.** The owner confirmed physical-device testing was
+performed this cycle (the Android ElevationGained log-storm and JSON/HTML
+response-parse fixes were both found and fixed from real-device runs); the
+S1B-08 checklist evidence and any residual per-metric notes live in
+`docs/STAGE_1B_DEVICE_VERIFICATION.md`. Production/release sign-off still
+depends on that document's device evidence being kept current.
 
 ### Deliverables
 
