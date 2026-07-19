@@ -37,9 +37,10 @@ Canonical product definition: `docs/PRODUCT_SPECIFICATION_V1.md`.
 
 - Repository: `C:\Users\harun\Documents\New project\AETERNA\aeterna-os`
 - Branch: `overnight/aeterna-product-integration`
-- Verified HEAD: `52282f02`
+- Verified HEAD: `51669b3e`
 - Remote state: not re-verified after the final Claude commits
-- Working tree: clean
+- Working tree: Golden Path commit clean; external `metro.config.js` and backup
+  changes remain unowned and were deliberately not staged
 
 Recent accepted commits:
 
@@ -54,6 +55,8 @@ Recent accepted commits:
 - `b458bb7b` touched-file Faz B lint cleanup
 - `882ddca1` reminder payload type correction from clean typecheck
 - `52282f02` real Compound-to-ProtocolItem link and prefilled protocol draft
+- `51669b3e` protocol schedules bridged to reminders/daily actions with Today
+  deduplication and Protocol Detail stack/logbook navigation
 
 ## Current phase and gates
 
@@ -66,8 +69,11 @@ testing remain external release work and must not be fabricated.
 
 The peptide golden path is the product gate before Labs: Compound -> Protocol
 -> schedule/dose -> reminder -> Today -> taken/skipped/injection -> vial and
-inventory -> symptom -> Weekly Review. Codex owns its audit and repair while
-the Study Club closing pass runs in non-overlapping files.
+inventory -> symptom -> Weekly Review. Compound-to-Protocol, representable
+daily/alternate-day/weekday schedule bridging, activation lifecycle, Today
+deduplication, and Protocol Detail navigation are now implemented. Remaining
+work is end-to-end verification and making injection/vial/symptom/review
+relationships visible without inventing unsupported medical meaning.
 
 Faz C has started with the existing 2D Body Atlas. Its compound-effect mode is
 currently derived heuristically from `mechanism_summary`. Faz C replaces that
