@@ -376,13 +376,11 @@ AGENT: OpenRouter coding agent (recommended model: DeepSeek V4 Pro, high or
 xhigh reasoning)
 TASK ID: TRAINING-CORE-PREP
 BASE SHA: 821597a4
-WORKTREE: C:\Users\harun\Documents\New project\AETERNA\aeterna-os-openrouter-labs-mobile
-BRANCH: agent/openrouter-labs-response-mobile
+WORKTREE: C:\Users\harun\Documents\New project\AETERNA\aeterna-os-openrouter-training
+BRANCH: agent/openrouter-training-core
 
 NOTE
-The worktree/branch name was prepared before final allocation and says labs;
-the task is Training Core. Do not rename it mid-run. Treat this task text as the
-authority. This branch will be integrated only after Golden Path and Labs.
+This branch will be integrated only after Golden Path and Labs.
 
 OBJECTIVE
 Turn the preserved Sparky workout domain into a modern, fast, Hevy-style
