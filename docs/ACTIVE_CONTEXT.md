@@ -1,6 +1,6 @@
 # AETERNA active context
 
-Last verified: 2026-07-18, Europe/Istanbul
+Last verified: 2026-07-20, Europe/Istanbul
 
 This is the compact operational source for new AI sessions. It records current
 state only, not project history. Codex owns this file.
@@ -114,6 +114,24 @@ primary tabs.
 - Owns Community screens/API/hooks/tests only
 - Does not edit server, donor, Protocol, Library, navigation, or Body Atlas
 
+### DeepSeek V4 Flash #2
+
+- Peptide golden-path closure from `821597a4`
+- Owns Protocol/medication/injection/inventory/review completion only
+- Must not touch Community, Labs, Training or canonical docs
+
+### GLM-5.2
+
+- Labs and Response Intelligence from `821597a4`
+- Owns Biomarker/Labs server, shared, mobile and focused tests
+- Branch may advance in parallel but merges only after Golden Path passes
+
+### OpenRouter agent
+
+- Training Core preparation from `821597a4`
+- Owns workout/exercise/preset/active-workout mobile files only
+- No Today/Track shell wiring; merge after Golden Path and Labs
+
 ## File collision boundaries
 
 Codex-only while donor adoption is active:
@@ -179,7 +197,11 @@ Shared changes require relevant server/mobile consumers to be typechecked.
 2. DeepSeek implements Study Club mobile completion from the same fixed API
    contract without touching HY3 files.
 3. Codex audits and repairs the peptide golden path in parallel.
-4. Codex integrates HY3 first, DeepSeek second, and runs cross-layer checks.
-5. Faz B closes as CODE COMPLETE; live Discourse provisioning remains a release
+4. DeepSeek #2 closes and proves the remaining golden path.
+5. GLM builds Labs/Response on an isolated branch while OpenRouter prepares
+   Training Core without shell integration.
+6. Codex integrates HY3 first, Community DeepSeek second, and runs cross-layer
+   checks; Golden Path is integrated before Labs, Labs before Training.
+7. Faz B closes as CODE COMPLETE; live Discourse provisioning remains a release
    blocker until real-instance smoke testing passes.
-6. Faz C evidence relationships resume only after the golden-path gate passes.
+8. Evidence relationships and later AEON/Clinic work resume after these gates.
