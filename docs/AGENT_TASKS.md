@@ -283,8 +283,8 @@ report using docs/AGENT_TASK_TEMPLATE.md.
 AGENT: GLM-5.2
 TASK ID: LABS-RESPONSE-INTELLIGENCE
 BASE SHA: 821597a4
-WORKTREE: C:\Users\harun\Documents\New project\AETERNA\aeterna-os-glm-labs-server
-BRANCH: agent/glm-labs-response-server
+WORKTREE: C:\Users\harun\Documents\New project\AETERNA\aeterna-os-glm-labs-response
+BRANCH: agent/glm-labs-response-intelligence
 
 OBJECTIVE
 Build the next major AETERNA product system: source-aware Labs and Response
