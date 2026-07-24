@@ -196,9 +196,13 @@ worktree removal only the canonical `aeterna-os` checkout remains under
   build artifact, not source. Safe to delete once you don't need it as a
   reference, or move it out of the repo tree entirely (it should never be
   committed — check `.gitignore` covers `*.apk`).
-- `references/` (52 MB) — licensed donor reference material
-  (Pepty/PeptIQ/etc extracts). Keep; this is real, permission-cleared
-  source material per `docs/DECISIONS.md`.
+- `references/` (52 MB) — **correction, verified 2026-07-24 after this
+  brief's first draft:** this is not licensed donor content. It's a full
+  third-party clone of Lemmy (open-source forum software, its own nested
+  `.git`), presumably pulled as implementation reference for Study Club.
+  It's a local research clone, not project source — safe to delete if disk
+  space is needed, or leave as a reference; either way it should never be
+  committed (it's someone else's repo with its own history).
 - `docs/docs.zip` (160 KB) — trivial, ignore.
 
 If disk is still tight, the next biggest win is deleting `node_modules` and
