@@ -1,5 +1,15 @@
 # AETERNA active agent tasks
 
+**RETIRED 2026-07-24.** The multi-agent parallel-worktree model this file
+describes is retired by explicit owner decision — Claude is now the sole
+active development agent. The worktrees named below no longer exist
+locally; their branches were pushed to origin unmerged and preserved for
+review, not discarded. See `docs/CONTINUATION_BRIEF.md` §3 and
+`docs/ACTIVE_CONTEXT.md`'s "Active ownership" section for what actually
+happened and what's still open. The task cards below are kept as a
+historical record of what each preserved branch was attempting — useful
+context when reviewing them, not live assignments.
+
 Only read the task assigned to your agent. Codex updates this file.
 
 ## HY3 — Faz B Study Club server closure

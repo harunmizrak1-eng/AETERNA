@@ -1,9 +1,15 @@
 # AETERNA active context
 
-Last verified: 2026-07-20, Europe/Istanbul
+Last verified: 2026-07-24, Europe/Istanbul
 
 This is the compact operational source for new AI sessions. It records current
-state only, not project history. Codex owns this file.
+state only, not project history. Claude owns this file as of 2026-07-24 (see
+"Active ownership" below and `docs/CONTINUATION_BRIEF.md` for the full story).
+
+**Read `docs/CONTINUATION_BRIEF.md` first if you are a new session.** It
+explains the 2026-07-24 consolidation (multi-agent worktrees merged and
+retired, cloud-session branch merged in, `.env` location, open items) that
+this file's "Active ownership" section below only summarizes.
 
 ## Product in one paragraph
 
@@ -37,12 +43,23 @@ Canonical product definition: `docs/PRODUCT_SPECIFICATION_V1.md`.
 
 - Repository: `C:\Users\harun\Documents\New project\AETERNA\aeterna-os`
 - Branch: `overnight/aeterna-product-integration`
-- Verified HEAD: `821597a4`
-- Remote state: not re-verified after the final Claude commits
-- Working tree: Golden Path commit clean; external `metro.config.js` and backup
-  changes remain unowned and were deliberately not staged
+- Verified HEAD: `7f140bfa` (merge of the cloud-session branch
+  `origin/claude/peptid-app-screen-issue-0c0gxg`, ~83 commits, into the prior
+  canonical HEAD `821597a4`/`e99a3166`; see `docs/CONTINUATION_BRIEF.md` §3)
+- Remote state: pushed and verified current (`git push` succeeded,
+  `e99a3166..7f140bfa`)
+- Working tree: clean; mobile and server `tsc --noEmit` both pass with 0
+  errors after `pnpm install` picked up the merge's new dependencies
+- 13 agent-worktree branches with real unmerged commits (HY3, DeepSeek ×3,
+  GLM-5.2, OpenRouter, Codex donor/ux, aeon-readonly, rls-fix, plus 5
+  `wip:`-committed dirty-worktree snapshots) were pushed to origin as their
+  own branches and are **not yet reviewed or integrated** — see
+  `docs/CONTINUATION_BRIEF.md` §3.3 and §6 for the exact branch list and
+  next-step framing. Do not assume these are duplicates of the merge above
+  without checking `git merge-base --is-ancestor` yourself.
 
-Recent accepted commits:
+Recent accepted commits (pre-2026-07-24 merge; still accurate context for
+the golden-path/Faz B state described below):
 
 - `c0a2a9fd` licensed Pepty catalog: 74 compounds and 150 PubMed references
 - `d871866f` shared canonical AETERNA Zod contracts
@@ -59,6 +76,14 @@ Recent accepted commits:
   deduplication and Protocol Detail stack/logbook navigation
 - `821597a4` Track symptoms can be explicitly linked to real scheduled
   interventions and display that relationship in history
+
+2026-07-24 merge brought in (non-exhaustive; see `git log
+1ca6da18..7f140bfa` for the full list): PDF/CSV lab import + OCR fallback,
+biomarker provenance/retest/annotation backend, recommendations engine
+scaffolding, protocol experiments, Discourse identity/SSO groundwork, AI
+usage quota, a full ÆTERNA branding sweep (web + mobile + email templates),
+sign-up flow, and App Store submission prep (iOS privacy manifests, icon
+alpha fix).
 
 ## Current phase and gates
 
@@ -89,52 +114,59 @@ primary tabs.
 
 ## Active ownership
 
-### Codex
-
-- Product/UX lead and canonical integrator
-- Maintains context and task cards
-- Reviews and cherry-picks agent commits
-- Owns licensed donor extraction and adoption
+**As of 2026-07-24, the multi-agent parallel-worktree model below is
+retired by explicit owner decision** ("şimdi tüm herşeyi sadece sen
+yapacaksın" — "from now on, only you will do everything"). Claude is the
+sole active development agent. The sections immediately below describe the
+*prior* structure for historical/reference purposes — the worktrees no
+longer exist locally (removed after their branches were pushed to origin
+for safekeeping; see `docs/CONTINUATION_BRIEF.md` §3.3 for the exact branch
+list). None of their unmerged work has been reviewed or integrated yet —
+that review is open work for the current sole agent, not assigned to
+anyone else.
 
 ### Claude
 
-- No longer active. Final accepted HEAD from Claude: `882ddca1`.
+- Active. Sole development agent as of 2026-07-24. Owns integration,
+  product/UX decisions, and canonical docs the way Codex previously did.
+- Final HEAD before this handoff: `7f140bfa` (see "Canonical application
+  state" above).
 
-### HY3
+### Retired (prior parallel structure — kept for reference only)
 
-- Immediate: minimum Study Club server completion
-- Owns Community/Discourse server routes, client, validation, capability
-  contract, rate-limit integration, and focused tests only
-- Does not edit mobile, donor, Protocol, Library, Labs, or Body Atlas files
-
-### DeepSeek V4 Flash
-
-- Immediate: minimum Study Club mobile completion against the fixed contract in
-  `docs/AGENT_TASKS.md`
-- Owns Community screens/API/hooks/tests only
-- Does not edit server, donor, Protocol, Library, navigation, or Body Atlas
-
-### DeepSeek V4 Flash #2
-
-- Peptide golden-path closure from `821597a4`
-- Owns Protocol/medication/injection/inventory/review completion only
-- Must not touch Community, Labs, Training or canonical docs
-
-### GLM-5.2
-
-- Labs and Response Intelligence from `821597a4`
-- Owns Biomarker/Labs server, shared, mobile and focused tests
-- Branch may advance in parallel but merges only after Golden Path passes
-
-### OpenRouter agent
-
-- Training Core preparation from `821597a4`
-- Owns workout/exercise/preset/active-workout mobile files only
-- No Today/Track shell wiring; merge after Golden Path and Labs
+- **Codex** — was product/UX lead and canonical integrator, maintained
+  context/task cards, reviewed and cherry-picked agent commits, owned
+  licensed donor extraction. That integrator role is now Claude's.
+- **HY3** — was doing Study Club server completion
+  (`agent/hy3-faz-b-community-server`, pushed to origin, unmerged; also
+  `agent/claude-product-coherence-backend`, unmerged).
+- **DeepSeek V4 Flash** — was doing Study Club mobile completion
+  (`agent/deepseek-faz-b-community-mobile`, pushed to origin, unmerged).
+- **DeepSeek V4 Flash #2** — was doing peptide golden-path closure
+  (`agent/deepseek-golden-path-closure`, pushed to origin, unmerged; also
+  `agent/deepseek-lab-pdf-import`, `agent/deepseek-nutrition-core-v2`).
+- **GLM-5.2** — was doing Labs/Response Intelligence
+  (`agent/glm-labs-response-intelligence`, pushed to origin, unmerged; also
+  `agent/glm-product-coherence-mobile`, WIP-committed and pushed).
+- **OpenRouter agent** — was doing Training Core prep
+  (`agent/openrouter-training-core`, pushed to origin, unmerged).
+- Also preserved, unmerged: `codex/donor-adoption`, `codex/ux-hardening`,
+  `agent/aeon-readonly`, `fix/rls-matrix-stage1a-tables`,
+  `agent/laguna-community-integration`, `agent/laguna-release-integration`
+  (WIP-committed), `agent/stepfun-integrated-ux` (WIP-committed),
+  `agent/stepfun-library-ux` (WIP-committed — its non-WIP history was
+  already an ancestor of the current merge).
 
 ## File collision boundaries
 
-Codex-only while donor adoption is active:
+**Retired alongside the ownership structure above.** These boundaries only
+made sense when multiple agents edited the same repo concurrently in
+separate worktrees. With a single active agent there is nothing to collide
+with; kept here only so the historical record of who owned what during the
+Faz B push is legible if you're reviewing the preserved branches in §"Active
+ownership" above.
+
+Former Codex-only paths while donor adoption was active:
 
 - `SparkyFitnessServer/db/migrations/20260718150000_seed_licensed_pepty_catalog.sql`
 - `SparkyFitnessServer/tests/licensedPeptySeed.test.ts`
@@ -142,19 +174,19 @@ Codex-only while donor adoption is active:
 - `SparkyFitnessMobile/src/screens/CompoundDetailScreen.tsx`
 - `C:\Users\harun\Documents\New project\references\**`
 
-HY3-only during Study Club closure:
+Former HY3-only paths during Study Club closure:
 
 - `SparkyFitnessServer/routes/v2/communityRoutes.ts`
 - `SparkyFitnessServer/services/discourseClient.ts`
 - Their focused server tests and an existing rate-limit integration point
 
-DeepSeek-only during Study Club closure:
+Former DeepSeek-only paths during Study Club closure:
 
 - Community mobile screens and focused tests
 - `SparkyFitnessMobile/src/services/api/communityApi.ts`
 - New Community hooks/types/utilities
 
-Codex-only during Golden Path work:
+Former Codex-only paths during Golden Path work:
 
 - Compound Detail, Protocol Detail, Today/Track product linkage, and primary
   Library transformation files
@@ -193,15 +225,23 @@ Shared changes require relevant server/mobile consumers to be typechecked.
 
 ## Next execution order
 
-1. HY3 implements Study Club server completion from `882ddca1`.
-2. DeepSeek implements Study Club mobile completion from the same fixed API
-   contract without touching HY3 files.
-3. Codex audits and repairs the peptide golden path in parallel.
-4. DeepSeek #2 closes and proves the remaining golden path.
-5. GLM builds Labs/Response on an isolated branch while OpenRouter prepares
-   Training Core without shell integration.
-6. Codex integrates HY3 first, Community DeepSeek second, and runs cross-layer
-   checks; Golden Path is integrated before Labs, Labs before Training.
-7. Faz B closes as CODE COMPLETE; live Discourse provisioning remains a release
-   blocker until real-instance smoke testing passes.
+**Superseded 2026-07-24** — the numbered plan below assumed the 5-agent
+parallel structure retired above. Kept for reference on what each retired
+branch in "Active ownership" was working toward. Real next steps for the
+current sole agent are in `docs/CONTINUATION_BRIEF.md` §6, starting with
+reviewing/integrating the preserved branches.
+
+1. ~~HY3 implements Study Club server completion from `882ddca1`.~~
+2. ~~DeepSeek implements Study Club mobile completion from the same fixed API
+   contract without touching HY3 files.~~
+3. ~~Codex audits and repairs the peptide golden path in parallel.~~
+4. ~~DeepSeek #2 closes and proves the remaining golden path.~~
+5. ~~GLM builds Labs/Response on an isolated branch while OpenRouter prepares
+   Training Core without shell integration.~~
+6. ~~Codex integrates HY3 first, Community DeepSeek second, and runs cross-layer
+   checks; Golden Path is integrated before Labs, Labs before Training.~~
+7. Faz B still closes as CODE COMPLETE only once Study Club, golden path, and
+   the items above are actually integrated and verified — that bar hasn't
+   moved, only who does the integration has. Live Discourse provisioning
+   remains a release blocker until real-instance smoke testing passes.
 8. Evidence relationships and later AEON/Clinic work resume after these gates.
