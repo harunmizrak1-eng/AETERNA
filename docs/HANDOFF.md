@@ -52,7 +52,7 @@
   Paket 7 blocker note; ZCode to fix.** RESOLVED by ZCode 2026-07-18
   (destructured `site`/`entryType` referenced as `vars.*` — fixed to use
   the in-scope names).
-- Updated: 2026-07-18, Europe/Istanbul
+- Updated: 2026-07-18 (Faz B Job 1 + Job 2 landed), Europe/Istanbul
 
 ## Faz B progress (ZCode pass — 2026-07-18, after Faz A closed)
 
@@ -73,6 +73,58 @@
   in-scope `site`/`entryType` (the mutationFn destructures them).
 - **Governance docs**: DECISIONS.md Faz B entry; ROADMAP.md Faz B
   section; this HANDOFF update.
+
+### Done this pass — Faz B, Job 1 + Job 2 (ZCode, 2026-07-18)
+
+**Job 1 — Discourse community integration (Study Club).**
+- Server proxy already present (`SparkyFitnessServer/routes/v2/communityRoutes.ts`,
+  mounted at `/api/v2/community` in `SparkyFitnessServer.ts`): categories/topics/
+  topic/create/like, mock REST fallback when `DISCOURSE_BASE_URL`/`DISCOURSE_API_KEY`
+  are absent. **Added a `POST /topics/:id/report` moderation endpoint** (report
+  intent, no invented moderation state; returns 200 in mock mode). Carries ÆTERNA
+  session via `onBehalfOfMiddleware`. Live Discourse SSO still a `TODO`.
+- Mobile: `communityApi.ts` gained `reportCommunityTopic`. The three community
+  screens (`src/screens/community/{TopicListScreen,TopicDetailScreen,CreatePostScreen}.tsx`)
+  **existed but did not compile** — their imports used `../components`, `../theme`,
+  `../services` (wrong by one level for a `community/` subfolder; should be
+  `../../`). Fixed import depth + removed `as never` casts on `navigation.navigate`
+  so they typecheck under strict mode. Registered all three as `Stack.Screen`
+  (`Community` → TopicList, `CommunityTopic` → TopicDetail, `CreateTopic` →
+  CreatePost) in `App.tsx`. **Added a "Community" row to `LibraryScreen`** that
+  navigates to `Community` (5-tab rule preserved; opened as a root-stack modal,
+  per DECISIONS 2026-07-16). Added a **Report button** next to Like on
+  `TopicDetailScreen` (upvote/like only, no downvote, no live chat).
+- Categories fixed per MASTER_PRODUCT_BRIEF Study Club: Peptides / TRT & Hormones
+  / GLP-1 / Biomarkers / Longevity / General.
+
+**Job 2 — Protocol dose reminders.**
+- New `src/services/protocolReminders.ts`: pure `parseReminderSpec` (reads
+  `protocol_items.schedule_intent` frequency/days/time/dose) + `computeOccurrenceDates`,
+  plus `scheduleProtocolReminders` / `refreshProtocolReminders` /
+  `cancelProtocolReminders` that read **active** protocols (`status === 'active'`)
+  + current version's items, then `expo-notifications.scheduleNotificationAsync`
+  (DATE trigger, dedicated `protocol-doses` Android channel), gated by a new
+  `doseRemindersEnabled` preference and OS permission. Reschedules on each
+  refresh; cancels only its own prefixed notifications.
+- New preference `doseRemindersEnabled` in `appPreferencesStore.ts` (default off).
+- **"Dose reminders" toggle added to `AppSettingsScreen`**; toggling refreshes
+  scheduling. `refreshProtocolReminders()` also called at app startup in
+  `App.tsx` (inside `initNotifications()` flow).
+- Tests: `__tests__/services/protocolReminders.test.ts` (12 cases: parse,
+  occurrence math, schedule/cancel orchestration). Added
+  `getAllScheduledNotificationsAsync` to `jest.setup.js` mock.
+
+**Verification (this pass):**
+- Mobile `tsc --noEmit` is clean for all changed files + the community screens.
+- `eslint` `--max-warnings 0` clean on all changed files (incl. `App.tsx`).
+- Server `tsc --noEmit` clean (incl. `communityRoutes.ts`).
+- `jest` protocolReminders suite: 12/12 pass.
+- **Known remaining repo type errors (PRE-EXISTING, out of scope):** full
+  `tsc --noEmit` still red in `src/screens/ProtocolScreen.tsx`,
+  `ProtocolBuilderScreen.tsx`, and `src/screens/tools/{HalfLifeChartsScreen,
+  InteractionCheckerScreen, ReconstitutionCalculatorScreen}.tsx` — unrelated to
+  Job 1/2 and present before this pass (the first incremental run masked them).
+  Recommend a follow-up to fix/confirm those independently.
 
 ### In flight (other agents, do not duplicate):
 
@@ -103,7 +155,11 @@
     replaced by calling `GET /v2/compounds/interactions` (server-side,
     seeded data).
 - **hy3**: Discourse community proxy + mobile screens (mock REST
-  fallback), protocol dose reminders via `expo-notifications`.
+  fallback), protocol dose reminders via `expo-notifications`. **DONE this
+  pass (ZCode, 2026-07-18)** — see "Done this pass — Faz B, Job 1 + Job 2"
+  above. Job 1 screens registered + report endpoint added; Job 2
+  `protocolReminders.ts` + preference + Settings toggle + startup refresh
+  + tests.
 
 ### Carry-forward blockers:
 

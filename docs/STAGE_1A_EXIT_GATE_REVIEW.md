@@ -13,6 +13,127 @@ migrations, or test output), not against docs or memory of earlier
 sessions. Where a claim required deeper verification, a dedicated research
 pass is cited inline.
 
+> **Re-verification 2026-07-17 supersedes the per-leg findings in §1–§11
+> below.** Sections §1–§11 were written at commit `6b2dd592`, *before* the
+> S1A-16 through S1A-26 completion work existed. They are preserved
+> unedited as the historical baseline. Read the re-verification section
+> immediately below for the current state; where the two disagree, the
+> re-verification is authoritative because it reflects later commits.
+
+## 0. Re-verification — 2026-07-17
+
+Scope: re-checks every Stage 1A exit-gate criterion against
+`overnight/aeterna-product-integration` at HEAD `332e7e4b` (was `6b2dd592`
+when §1–§11 were written). The 25 commits `215375b1..332e7e4b` implement
+S1A-16 through S1A-26 plus a hardening pass. Every row below was verified
+against a file, migration, or test run in this session, cited inline.
+
+### 0.1 The eight-leg end-to-end chain
+
+| Leg | 2026-07-16 (§1) | 2026-07-17 (now) | Evidence |
+|---|---|---|---|
+| Baseline | Not implemented | **Data + API + read UI built** | `db/migrations/20260716130000_add_protocol_baseline_schema.sql`; `protocolRepository`/`protocolRoutes`; mobile `useProtocolBaseline` + ProtocolScreen "Baseline assessment" row reads real `completed_at` state |
+| Eligibility | Not implemented | **Data + API + read UI built** | `20260716140000_...eligibility_assessment_schema.sql`; `protocolEligibilityRepository.ts`; mobile `EligibilityStatus` renders the latest real assessment's `state`/`basis` |
+| Protocol activation | Not implemented | **Built, with immutable versions** | S1A-19 `1212c8b8`; `protocolRepository.ts` submit/activate/reject; `ImmutableVersionError` thrown on editing a non-draft version; ProtocolScreen Submit/Activate/Reject buttons |
+| Schedule | Real | **Real + protocol-linked** | `20260716150000_...protocol_item_link.sql` adds `protocol_item_id` to `medication_schedules`; mobile `doseSourceLabel` shows "Protocol" provenance |
+| Dose log | Real write | **Real write + idempotent** | `20260716160000_...idempotency_key.sql` partial unique index on `(user_id, idempotency_key)`; mobile sends deterministic `dose:<med>:<sched>:<date>` key |
+| Inventory update | Real write | **Real write + constrained** | `20260716170000_...inventory_constraints.sql` CHECK on `doses_used`/`doses_total`; `injectionRepository` `PenExhaustedError`/`PenNotFoundError` with `FOR UPDATE` lock |
+| Symptom | Real write | **Real write** (unchanged) | `POST /api/v2/symptoms/entries` |
+| Safety event | Not implemented | **First-class workflow built** | `20260716180000_add_safety_event_schema.sql` (`safety_events` + append-only `safety_event_updates`); `/api/v2/safety-events`; mobile "Flag as safety concern" on each symptom row |
+| Weekly review | Real | **Real + lab results + open safety events** | S1A-26 `fbab0cdf`; `useWeeklyReview` aggregates adherence, symptoms, `observations`, `unresolvedSafetyEvents` — no score, no causal claim |
+
+Every previously-missing leg (Baseline, Eligibility, Protocol activation,
+Safety event) now exists at the database, API, and — except the two
+creation gaps in §0.3 — the mobile layer. **BiomarkerResult** (also flagged
+absent in §6) is likewise built: `20260716190000_add_biomarker_result_schema.sql`,
+`/api/v2/biomarker-results`, and the BiomarkersScreen "Laboratory results"
+section with manual entry.
+
+### 0.2 The other exit-gate criteria
+
+- **"Protocol edits create immutable versions; historical logs retain their
+  version."** — **Now enforceable and enforced.** `protocolRepository.ts`
+  throws `ImmutableVersionError` when a non-`draft` version is edited;
+  activation supersedes the prior active version in one transaction and
+  repoints `protocols.current_version_id`. (Was "not applicable" in §1
+  because no version existed.)
+- **"Duplicate dose submissions are idempotent."** — **Now met at the
+  server.** The §1 finding (client-only protection) is closed: a real
+  partial unique index rejects a duplicate `(user_id, idempotency_key)`,
+  and `medicationEntryRepository.createEntry` pre-checks then catches the
+  unique-violation and refetches the original. Concurrency-simulation test
+  included.
+- **"Timezone, unit conversion, offline/retry, permission denial, and
+  safety-event error paths are covered by tests."** — **Now fully met.**
+  The four pre-existing coverages remain; the previously-impossible
+  safety-event error paths are covered by `tests/safetyEventRoutes.test.ts`
+  (invalid severity → 400, missing description → 400, etc.).
+- **"Data export and account deletion cover all Stage 1A entities."** —
+  **Now met.** Export: `models/stage1aExportRepository.ts` selects all 14
+  Stage 1A tables (verified by `FROM` enumeration), mounted at
+  `GET /api/v2/protocols/export` *before* the `/:protocolId` wildcard (a
+  dedicated test guards the ordering). Deletion: every new table declares
+  `user_id ... ON DELETE CASCADE` (verified in all six new-table
+  migrations), so account deletion's existing cascade reaches them.
+- **"Today remains usable with manual data and does not depend on health
+  sync."** — **Still met** (unchanged from §1; `TodayScreen.test.tsx`).
+- **"Owner approves Stage 1B entry."** — **Still the owner's to make.**
+
+### 0.3 Honest gaps that remain (why the gate is *substantially*, not
+*fully*, closed)
+
+1. ~~**No in-app UI to *create* canonical Protocol Core objects.**~~
+   **RESOLVED by S1A-27 (`14a87450`).** ProtocolScreen now has a progressive
+   "Set up your protocol" section that wires the create hooks to real UI:
+   `CreateProtocolForm` (creates the protocol + its draft v1),
+   "Start baseline"/"Mark baseline complete" buttons, and
+   `RecordEligibilityForm` (state + required basis). Combined with the
+   pre-existing submit-for-review/activate/reject controls, a user can now
+   drive the whole baseline → eligibility → activation chain in-app. Focused
+   tests: CreateProtocolForm + RecordEligibilityForm 9/9. (The owner chose
+   this "build in-app creation UI first" path over closing the gate at the
+   data layer.) Remaining nuance: ProtocolItem authoring (linking specific
+   medications into a version) still has no dedicated form — the schedule
+   leg works via the existing S1A-20 linkage, so this is a refinement, not a
+   chain blocker.
+2. **No single end-to-end integration test** drives baseline → eligibility
+   → activation → schedule → dose → inventory → symptom/safety → weekly
+   review as one flow. Each leg is unit-tested in isolation (server
+   route/repo + mobile hook/component). Evidence this session: **server
+   118/118** across `protocolRoutes`, `safetyEventRoutes`,
+   `biomarkerResultRoutes`, `medicationEntryRepository`, `medicationRoutes`;
+   mobile hook/form/screen suites green for every touched surface.
+3. **Migrations have never been applied to a live database in this
+   environment.** No Postgres is reachable here and the server was never
+   booted, so migration-checklist steps 3–5 are outstanding:
+   `db_schema_backup.sql` does **not** yet contain the new tables (verified:
+   0 matches), and **no shared `@workspace/shared` Zod schemas** exist for
+   `Protocol`, `SafetyEvent`, `BiomarkerResult`, or the eligibility/baseline
+   tables (verified: none in `shared/src/schemas/database/`). All server
+   tests run against mocked clients / isolated test apps, so this gap is
+   invisible to them. A real boot + `DB Backup.cmd` + shared-schema pass is
+   required before this counts as production-applied.
+4. **No on-device verification** (unchanged): no physical iOS/Android device
+   access this cycle. §7–§8's manual and device checklists remain
+   outstanding, now extended by the S1A-16..26 write paths.
+
+### 0.4 Updated recommendation
+
+The exit gate has moved from **"three legs missing, one with no backend"**
+to **"all eight legs implemented at the data + API layer, four exit-gate
+criteria newly met, with four honest gaps concentrated in (a) in-app
+creation UI, (b) end-to-end/integration + on-device testing, and (c)
+live-DB application of the migrations."** Whether that clears the gate is
+the owner's call and turns on one question: **does "passes end to end"
+require a user to complete the chain inside the app, or is
+data-layer + API completeness sufficient with creation performed
+administratively?** If the former, §0.3(1) is a required follow-up slice
+before the gate closes. If the latter, the gate is substantially met and
+the remaining work is verification (§0.3 2–4), not new features. The
+§10 three-option framing still applies, but option 2's scope has now
+largely been *built* — what is left of it is the in-app creation UI and the
+verification passes, not the whole of Baseline/Eligibility/Activation/Safety.
+
 ## 1. Exit-gate criteria, checked one by one
 
 `docs/ROADMAP.md`'s exact Stage 1A exit gate:

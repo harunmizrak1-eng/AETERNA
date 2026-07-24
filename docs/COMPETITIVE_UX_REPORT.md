@@ -102,6 +102,69 @@ exclamation-heavy "Founding Member" scarcity/urgency framing read as
 growth-hacky — at odds with ÆTERNA's clinical restraint and aeternamethod.com's
 already-established, calmer editorial voice.
 
+### Update: the actual gated dashboard (owner-provided screenshots, 2026-07-15)
+
+The marketing-site audit above could not see past the signup wall. The owner
+supplied three screenshots of a real logged-in account, which change the
+picture — this is the first direct look at OneTwenty's actual in-app UX
+rather than its marketing page.
+
+**Home dashboard:** A dismissible announcement banner ("Apple Health Now
+Supports Blood Pressure & CGM Data," 1/3, carousel arrows) sits above a
+personalized greeting ("Welcome back, Chaim!"). The primary card is a
+**Health Score** — a large number (76/100) paired with a dot-plot trend line
+across a scrollable date axis, a Daily/Weekly toggle, and an explicit sample-
+size disclosure ("106 days of data"). Sparse dot density in early weeks
+visually communicates data ramp-up rather than hiding it. Beside it, a dark
+**"member card"** widget — Health ID number, score, member name, brand
+mark — styled like a physical loyalty/insurance card, not a data widget. A
+**Connected Devices** panel (Apple Health, Oura, Withings, Google Fit; count
+badge "4") sits as a first-class dashboard element, not buried in settings,
+each with a colored status dot and a "+ Add" affordance. Below the fold,
+per-metric sub-cards (Sleep, Heart Rate, Daily Calories) each pair a mini
+sparkline with current value, a status chip ("NORMAL"), and a signed delta
+("+2 bpm").
+
+**Health Score detail screen:** A distinct destination (own nav tab, "Health
+Score"), not just an expanded card. Leads with a semicircular gauge (65,
+labeled "GREAT" — plain-language framing of a number, not just the number),
+a Day/Week/1 Month/3 Month toggle, both absolute and period deltas ("+9
+pts," "+76 today"), and a footer disclosing device count and staleness
+("4 devices," "Synced 2h ago"). Below the gauge, category scores
+(Cardiovascular 68, Metabolic 83) render as large tappable pill-buttons, not
+a plain list — the active category becomes a filled orange bar. Under that,
+a **marker table** (Name / Score / History) lists individual results
+(Blood Pressure: 50, "LOW," "133/87," wavy sparkline; Blood Lipids: 85,
+"NORMAL," "74 mg/dL," source-tagged "Lab result") — score, raw value, status
+chip, and trend sparkline together in one row, reused consistently down the
+table.
+
+**Revised patterns worth studying (supersedes the marketing-page-only
+findings above):**
+- A composite score (Health Score) with plain-language status label
+  ("GREAT") is the anchor, with named sub-scores (Cardiovascular, Metabolic)
+  one tap away — the same score-then-drill-down structure noted for
+  Ultrahuman's Recovery Score, now confirmed as OneTwenty's actual pattern
+  too, not just a marketing claim.
+- Explicit data-provenance and staleness in the UI itself ("106 days of
+  data," "Synced 2h ago," "Lab result" tags) rather than buried in settings —
+  directly relevant to ÆTERNA's own `DataSource`/provenance requirements
+  (`docs/DATA_MODEL.md`) and stronger evidence than HeadsUp Health's
+  click-through icon alone.
+- One consistent row shape (score + raw value + status chip + sparkline)
+  reused for every biomarker in a table, rather than a bespoke card per
+  marker — simpler to build and scan than OneTwenty's own marketing-page
+  card version.
+- Connected-devices management surfaced as dashboard-level, not
+  settings-level — worth weighing for ÆTERNA's own Health Sync status
+  surface once Stage 1B is active.
+
+**Still doesn't fit ÆTERNA:** the physical-membership-card visual metaphor
+and consumer-app status-chip color coding (bright green "NORMAL" pills) skew
+closer to a fintech/insurance app than ÆTERNA's clinical-editorial register
+— if adapted, the *structure* (score, delta, provenance, drill-down) is the
+reusable part, not this specific visual skin.
+
 ## Marek Health (marekhealth.com)
 
 **Access:** Server-blocks non-US IPs — could not be directly browsed.
