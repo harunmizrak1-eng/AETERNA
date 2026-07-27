@@ -1,5 +1,229 @@
 # ÆTERNA decision log
 
+## 2026-07-25 — Vision re-anchored: Biology Operating System, not a tracker
+
+Decision (owner direction, recorded after full audit of today's app vs the
+12-pillar vision). ÆTERNA's product identity is **not** "the most data you
+can collect" but "the clearest understanding of what your biology is doing".
+Tagline basis: *track less, understand more* / *your biology, decoded*.
+Turkish: *vücudunun verdiği sinyalleri anlamlandır*.
+
+The audit (3 parallel Explore agents covering mobile screens, server infra,
+and health integrations) found:
+
+- **Protocol→Response engine is ~75% scaffolded** — `effective_from` T=0
+  anchor, every metric's date-indexed table + range query, and a mean/
+  peak-delta/sample-gate idiom (in `cycleService` / `shared/src/cycle/
+  correlations.ts`) already exist. Missing: one assembly service + one
+  route + one helper. This is the lowest-effort, highest-value feature and
+  becomes the spine everything else builds on.
+- **Biological age is deliberately refused** (`deriveBiologicalSignals.ts:
+  29-37`) as fabrication. This stance is **kept**. The vision's "biological
+  profile" is reinterpreted as independent signals (recovery / metabolic /
+  cognitive / cardiovascular) + trend, never a single invented number.
+- **WHOOP and Oura have zero code.** HealthKit/Health Connect already
+  deliver sleep + HRV + RHR + workouts. Wearable OAuth is days of work and
+  adds no unique value over computing a recovery score from HRV + sleep
+  debt ourselves (what WHOOP effectively does). Wearables are deferred to
+  an optional Phase 5.
+- Today screen is a task list + raw signals; `deriveBiologicalSignals`
+  already computes the deltas Today doesn't consume.
+- AEON is stateless chat today, grounded only by client-side prompt
+  injection. Needs a server-side user-context endpoint to answer
+  data-grounded ("you're tired because sleep −48min, training +31%").
+- N=1 experiments have type + screen + server repo, but no scoring
+  (intentionally). The scoring half is the missing value.
+- Stack intelligence is a coarse category count (`peptide/hormone/glp1/
+  supplement/other`); no pathway dimension ("recovery vs sleep compound").
+
+### Approved decisions (9)
+
+1. **Killer feature first: Protocol→Response engine.** Phase 1. Lowest
+   effort, highest value; ~75% scaffolding exists.
+2. **Keep the anti-fabrication stance on biological age.** No invented
+   single score. Show independent signals + trend instead.
+3. **Defer WHOOP/Oura.** Compute a recovery score from HRV + sleep debt
+   ourselves; HealthKit/Health Connect is the data source.
+4. **Add a pathway dimension to the compound model.** Extend the coarse
+   `CompoundCategory` with `recovery/metabolic/cognitive/sleep/longevity`
+   tags, sourced from real references (never fabricated).
+5. **AEON becomes data-grounded via a server user-context endpoint**, not
+   just prompt injection.
+6. **Today becomes interpretation, not task list.** Consume
+   `deriveBiologicalSignals`; show "current state + what changed this
+   week + one AEON sentence".
+7. **N=1 experiment scoring added.** `tracked_metric` (free text) → real
+   baseline→outcome computation, sample-gated.
+8. **Protocol timeline surfaces from hiding.** `ResponseTimelineScreen`
+   (BUILT, buried in Biomarkers tab) becomes reachable from Protocol +
+   Today.
+9. **SQLite Phase 1.2 is a blocker.** Offline writes are required before
+   any of the above is meaningful — "what changed" is an empty engine
+   without data.
+
+### Roadmap (5 phases, sequential, each a release)
+
+- **Phase 0 (blocker):** SQLite Phase 1.2 (api seam swap + optimistic
+  update). Token rotation + Render suspension (owner).
+- **Phase 1: Protocol→Response Engine.** 1 service + 1 route + 1 helper
+  + mobile ProtocolScreen delta grid + unhide ResponseTimelineScreen.
+- **Phase 2: Today interpretation + Stack pathway intelligence.**
+  `deriveBiologicalSignals` wired to Today; `CompoundCategory` pathway
+  dimension; stack balance + duplicate-pathway alert.
+- **Phase 3: AEON correlation AI.** `POST /api/v2/aeon/user-context`;
+  data-grounded answers (with cache + rate limit for LLM cost).
+- **Phase 4: N=1 experiment scoring + biological events.** Metric
+  resolver, automated outcome, event types (illness/injury/travel/stress).
+- **Phase 5 (optional):** WHOOP/Oura OAuth + Lab PDF OCR.
+
+### Vision → phase map (the owner's 12 pillars)
+
+| Pillar | Phase | Audit reality |
+|---|---|---|
+| #1 What changed | Phase 1 | ~75% scaffolded |
+| #2 Protocol timeline | Phase 1 | BUILT, hidden |
+| #3 Baseline/response | Phase 1 | weight/waist done, rest to add |
+| #4 AEON correlation | Phase 3 | stateless → data-grounded |
+| #5 N=1 experiment | Phase 4 | type+screen present, no scoring |
+| #6 Stack balance | Phase 2 | category count only, no pathway |
+| #7 Duplicate pathway alert | Phase 2 | absent |
+| #8 Protocol builder (lego) | Phase 4+ | current builder exists, not lego |
+| #9 Biological events | Phase 4 | timeline exists, no event types |
+| #10 Lab scanner | Phase 5 | PDF/CSV present, no OCR |
+| #11 Today interpretation | Phase 2 | task list → interpretation |
+| #12 Community logs | out of scope | Study Club already protocol-log focused |
+| WHOOP/Oura | Phase 5 (deferred) | zero code; HealthKit/HC sufficient |
+| Biological age | refused | fabrication = anti-pattern |
+
+### "Track less, understand more" test
+Each phase is measured against: *does the app force the user to enter more
+data, or does it derive meaning from data already there?* Phases 1–4 are
+meaning-derivation phases. Phase 0 is data-entry plumbing (offline writes) —
+necessary but adds no understanding on its own.
+
+Why:
+The product's only durable differentiator is connecting signals across
+domains (protocol start → sleep/HRV/lab/training response), not collecting
+more of them. The audit proved the spine already exists; the work is wiring
+and a thin aggregation layer, not a new foundation. Recording this now so
+every future feature decision is tested against "does this help the user
+understand, or just track?".
+
+## 2026-07-25 — Backend migrated Render → Fly.io (DB stays on Neon)
+
+Decision:
+Render free tier's 15-minute idle sleep made the backend unreachable
+on cold starts, breaking every server-dependent flow (login, sync, chat,
+community). The backend is now deployed to **Fly.io** (`aeterna-os.fly.dev`),
+org `personal`, region `fra`.
+
+Scope of the move:
+- **Server only.** Express container (`SparkyFitnessServer` via
+  `docker/Dockerfile.backend`) now runs on Fly. Stateless — no volumes.
+- **DB unchanged.** Postgres stays on Neon
+  (`ep-noisy-union-auqe93vv…neon.tech`, db `neondb`). Carry-over. The
+  earlier 2026-07-18 decision to abandon Supabase Postgres (its reserved
+  `auth` schema is incompatible with our migration chain) stands — Neon
+  remains the DB. **Supabase is not used for the DB.**
+- **Carry-over secrets (non-negotiable):** `SPARKY_FITNESS_API_ENCRYPTION_KEY`
+  and `BETTER_AUTH_SECRET` copied from the Render `.env` exactly, so
+  AES-256-GCM-encrypted provider keys / OAuth creds in Neon remain
+  decryptable and existing session cookies stay valid.
+- **Frontend URL updated** to `https://aeterna-os.fly.dev` (was
+  `localhost:8080` in the local `.env`) so CORS and Better-Auth base
+  resolve correctly for the new origin.
+- **`fly.toml`** sets `auto_stop_machines = false` + `min_machines_running = 1`
+  — the machine never sleeps, which is the entire reason for the move.
+- **Memory:** 1 GB (`shared-cpu-1x`) to absorb the 215-migration boot
+  spike. Can shrink to 512 MB after first boot.
+- **Garmin microservice:** not deployed (skipped `GARMIN_MICROSERVICE_URL`).
+  Garmin integration is dormant until a sidecar is added.
+
+Mobile impact: **none.** Users point the app at the new URL in
+Settings → Server URL (`https://aeterna-os.fly.dev`). `apiClient.ts`
+resolves the URL at runtime via `getActiveServerConfig()` — no code change,
+no rebuild required for existing installs.
+
+Files: `aeterna-os/fly.toml` (new), `aeterna-os/.dockerignore` (added
+`references/` + APK exclusions), `docs/deployment-fly.md` (new runbook).
+
+Token hygiene: the deploy token used for this migration is a credential
+in the chat history; rotate at https://fly.io/app/personal-access-tokens.
+
+Why:
+Render's free-tier sleep was a release blocker for any flow needing the
+server. Fly.io's free shared-VM tier with `min_machines_running = 1`
+keeps the server warm without cost. Docker was already authored
+(`docker/Dockerfile.backend`) and the build is unchanged from the Render
+build — zero code change, infrastructure-only move.
+
+Open:
+- Supabase URL/keys the owner supplied on 2026-07-25 are **not** used
+  for this deploy. They remain available if a future phase moves the DB
+  to Supabase (would require resolving the `auth` schema conflict first)
+  or adds Supabase Edge Functions.
+- Render's old `aeterna-api` service should be suspended/deleted from
+  the Render dashboard once Fly is confirmed stable.
+
+## 2026-07-25 — Offline-first SQLite architecture authorized (user-data layer)
+
+Decision:
+With bundled read-only content complete (174 compounds, 872 wger
+exercises, 7083 USDA foods, protocol templates/guides/comparisons,
+interaction checker — all local JSON, zero server dependency), and
+login made optional (`localOnlyMode`), the remaining gap is the
+**writable user-data layer**: protocols, dose logs, labs, symptoms,
+water, food entries still POST to the server on every write. With the
+server offline or unreachable (Render free-tier sleep, or local-only
+mode), no user data can be recorded.
+
+Architecture authorized (Claude executing, MVP scope):
+
+- **SQLite = primary, server = secondary.** Every write lands in
+  local SQLite first; the server is synced from an outbox queue when
+  online. `api/<entity>Api.ts` signatures are preserved so React Query
+  hooks and screens need no changes — only the implementation body
+  swaps from `apiFetch` to a SQLite repository + outbox queue.
+- **Library**: `expo-sqlite` (native — requires `expo prebuild`).
+- **Migration runner**: `system.schema_migrations` pattern mirrored
+  from the server, so migration names stay portable.
+- **Outbox table**: `{id, entity_type, entity_id, operation,
+  payload JSON, idempotency_key, status, attempts, last_error,
+  created_at, synced_at}`. `idempotency_key` extends the dedup
+  primitive already present on `createMedicationEntry` to every entity.
+- **Sync engine**: mirrors the existing health-data sync engine
+  (`backgroundSyncService.ts` / `autoSyncCoordinator.ts`) but iterates
+  the outbox. Server-side conflict detection (`dataConflictRoutes`,
+  already built but unused on mobile) is leaned on rather than
+  reinvented.
+- **Optimistic update**: `onMutate` writes SQLite + updates the React
+  Query cache; `onError` rolls back. Currently absent everywhere —
+  greenfield.
+- **MVP entities (6)**: Protocol (+ version + item), MedicationEntry
+  (dose log + injection), BiomarkerResult, SymptomEntry, WaterIntake,
+  FoodEntry. CheckInMeasurement and ExerciseEntry are deferred to
+  Phase 2.
+
+Why:
+The product direction (offline-first, free, no server dependency for
+core use) is incompatible with server-only writes. Users in local-only
+mode (the explicit onboarding path added 2026-07-24) currently cannot
+record anything. SQLite primary + optional sync closes the gap without
+abandoning the server (sync, conflict resolution, and AEON AI still
+need it).
+
+Risks recorded:
+- `expo-sqlite` is native → managed-workflow builds need `expo
+  prebuild`; build pipeline changes. Must be noted in AGENTS.md.
+- Cross-device: if the app is reinstalled, SQLite is lost; server pull
+  (Phase 1.3, per-entity `updated_at` cursor) is the recovery path.
+- Some entities may lack a server `GET all` endpoint; pull may require
+  new server routes in Phase 2.
+- Outbox growth during long offline periods needs batch sync + rate
+  limiting.
+- Conflict resolution UI is unbuilt; `useDataConflict` is wired but
+  attached to no screen — Phase 2.
+
 ## 2026-07-18 — Faz B started: tool screens, Community (Discourse), reminders, account export
 
 Decision:

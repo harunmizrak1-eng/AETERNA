@@ -225,11 +225,47 @@ Shared changes require relevant server/mobile consumers to be typechecked.
 
 ## Next execution order
 
-**Superseded 2026-07-24** — the numbered plan below assumed the 5-agent
-parallel structure retired above. Kept for reference on what each retired
-branch in "Active ownership" was working toward. Real next steps for the
-current sole agent are in `docs/CONTINUATION_BRIEF.md` §6, starting with
-reviewing/integrating the preserved branches.
+**Updated 2026-07-25 — Biology Operating System roadmap (5 phases).**
+
+See `docs/DECISIONS.md` (2026-07-25, "Vision re-anchored") for the 9
+approved decisions and the full vision→phase map. Summary:
+
+Completed foundation (Claude, sole agent):
+- Bundled read-only content (174 compounds, 872 wger exercises, 7083
+  USDA foods, protocol templates/guides/comparisons, interaction
+  checker) — zero server dependency.
+- Login made optional (`localOnlyMode`, "Enter ÆTERNA without an
+  account").
+- Three UX bug fixes: water button tappable + haptic, injection-log
+  loading-state, PDF/CSV real error message.
+- **Render → Fly.io server migration DONE and live**
+  (`https://aeterna-os.fly.dev/api/health` → 200 UP, 2 machines fra,
+  never-sleep, DB still on Neon).
+- SQLite Phase 1.0 + 1.1 done (8 tables + outbox + sync engine, commit
+  `6f868b21`).
+
+Active / next:
+- **Phase 0 (blocker): SQLite Phase 1.2** — api seam swap + optimistic
+  update (Claude in progress). Owner: rotate Fly deploy token + suspend
+  Render.
+- **Phase 1: Protocol→Response Engine** — 1 service + 1 route + 1
+  helper + mobile ProtocolScreen delta grid + unhide
+  ResponseTimelineScreen. ~75% scaffolded per audit. Lowest effort /
+  highest value; this is the product's identity-changing feature.
+- Phase 2: Today interpretation + Stack pathway intelligence.
+- Phase 3: AEON correlation AI (server user-context endpoint).
+- Phase 4: N=1 experiment scoring + biological events.
+- Phase 5 (optional): WHOOP/Oura OAuth + Lab PDF OCR.
+
+Then: physical-device build test (EAS), conflict-resolution UI,
+server pull endpoints for entities missing `GET all`.
+
+**Earlier plan (superseded 2026-07-24)** — kept for reference. The
+numbered list below assumed the 5-agent parallel structure retired
+above; what each retired branch in "Active ownership" was working
+toward. Earlier real next steps for the then-sole agent were in
+`docs/CONTINUATION_BRIEF.md` §6, starting with reviewing/integrating
+the preserved branches.
 
 1. ~~HY3 implements Study Club server completion from `882ddca1`.~~
 2. ~~DeepSeek implements Study Club mobile completion from the same fixed API
