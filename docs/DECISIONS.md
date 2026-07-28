@@ -1,5 +1,49 @@
 # ÆTERNA decision log
 
+## 2026-07-28 — Branding residue closed; multi-agent working rules reinforced
+
+Two latent leftovers from the Render/SparkyFitness era were caught and
+closed after the owner flagged that the EAS-built APK still showed
+"SparkyFitness" and tried to reach the dead Render host:
+
+- `DEFAULT_AETERNA_SERVER_URL` was still `onrender.com`. The Fly.io
+  migration (2026-07-25) updated the deploy but never this constant, so
+  every fresh install resolved to the suspended Render service. Fixed
+  to `https://aeterna-os.fly.dev` (commit `8aad97d9`).
+- `app.json` `expo.name` was `SparkyFitnessMobile` even though
+  `app.config.ts` already set `APP_NAME = 'ÆTERNA OS'`. Because
+  `expo prebuild` derives `android/.../strings.xml:app_name` from
+  `app.json` at build time, the on-device home-screen label kept
+  rendering SparkyFitness. `app.json` name set to `ÆTERNA OS` (slug,
+  scheme, and bundle id intentionally unchanged to preserve EAS build
+  identity and deep links).
+
+Reinforced multi-agent working rules (after Claude's own honest
+end-of-session report flagged three process failures):
+
+- **`git add -A` is prohibited** for any agent working in the shared
+  repo. Claude reported sweeping four foreign working-tree files into a
+  commit this way; it was caught by a push rejection but the failure
+  mode is real. Stage explicit paths only.
+- **Read the existing route file before writing a parallel service.**
+  Claude wrote an AI-vision lab service, then discovered the project
+  already had a local tesseract OCR path that did not need to send the
+  user's medical document to a third party. Reading first is already an
+  AGENTS.md rule ("Read only the relevant 3–6 files"); reinforced here
+  because the cost of not doing so was a privacy regression that was
+  only caught by self-review.
+- **Parallel sessions must not take work the other owns.** The remote
+  type-migration session and the local session both wrote the same lab
+  screen, producing a redundant backup branch. When delegating
+  "continue", the delegating agent must enumerate what is already
+  in-flight.
+
+The three pending Neon migrations (`biological_event`,
+`aeon_sharing_control`, `protocol_item_sort_order`) were applied by
+restarting the Fly app; boot-time `applyMigrations()` ran them.
+Verified live: `/api/health` 200, and the three new-table routes return
+401 (auth gate reached) rather than 500 (relation missing).
+
 ## 2026-07-25 — Vision re-anchored: Biology Operating System, not a tracker
 
 Decision (owner direction, recorded after full audit of today's app vs the
